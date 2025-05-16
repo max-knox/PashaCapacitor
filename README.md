@@ -1,0 +1,2 @@
+# PashaCapacitor
+Hybrid mobile app
