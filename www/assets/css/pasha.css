@@ -1,0 +1,193 @@
+/* assets/css/pasha.css  */
+.amaranth-regular {
+    font-family: "Amaranth", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+.amaranth-bold {
+    font-family: "Amaranth", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+}
+.amaranth-regular-italic {
+    font-family: "Amaranth", sans-serif;
+    font-weight: 400;
+    font-style: italic;
+}
+.amaranth-bold-italic {
+    font-family: "Amaranth", sans-serif;
+    font-weight: 700;
+    font-style: italic;
+}
+* {
+    font-family: "Open Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400; 
+    font-style: normal;
+    font-variation-settings: "wdth" 100;
+}
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: .5rem;
+    font-weight: 500;
+    line-height: 1.2;
+    font-family: "Amaranth", sans-serif;
+    font-weight: 700;
+    font-style: italic;
+}
+.sphere-canvas {
+    width: 376px;
+    height: 240px;
+}
+#historyList {
+    max-height: 80vh; /* Adjust as needed */
+    overflow-y: auto;
+}
+
+#historyList .list-group-item {
+    padding: 10px; /* Adjust padding to make items more compact */
+}
+
+#historyList .meeting-info p {
+    margin-bottom: 5px; /* Reduce space between paragraphs */
+}
+.fixed-bottom {
+    z-index: 9999;
+}
+.btn-block {
+    width: 100%;
+}
+.pashaLogoText {
+    font-family: "Amaranth", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+    color:white;
+}
+.startWrap {
+    display:flex;
+    flex-flow:column;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    border-radius:8px;
+    overflow:hidden;
+    height:auto;
+    min-width:300px;
+    max-width:420px;
+    background-color:rgba(17, 30, 43, 0.776);
+    cursor:pointer;
+  }
+  .startWrap:hover {
+    background-color:rgba(36, 58, 80, 0.776);
+  }
+  .startWrap h1, small {
+    color:white;
+    font-weight:800;
+  }
+.loginWrap {
+    display:flex;
+    flex-flow:column;
+    justify-content:center;
+    align-items:center;
+    padding:40px 20px;
+    border-radius:8px;
+    overflow:hidden;
+    height:auto;
+    margin:0 20px;
+    min-width:300px;
+    max-width:420px;
+    background-color:rgba(17, 30, 43, 0.776);
+  }
+.signIn {
+    font-family: "Amaranth", sans-serif;
+    font-weight: 700;
+}
+.btn-welcome {
+    background-color:#eeeeee;
+    font: 800 .9rem "Open Sans", sans-serif;
+    border:none;
+    color:#003262;
+    padding:18px 32px;
+    margin-left: auto !important; 
+     margin-right: auto !important;
+}
+.btn-welcome:hover {
+    background-color:#5396c3;
+    font: 800 .9rem "Open Sans", sans-serif;
+    border:none;
+    color:#ffffff;
+    padding:18px 32px;
+}
+body {
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    transition: background-color 1s ease;
+}
+.pasha_bg {
+    background-image: url('../img/nda_bg_tint.jpg');
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: cover;
+}
+body {
+    transition: background-color 1s ease, background-image 1s ease;
+}
+.form-control {
+    padding: 1rem .75rem;
+}
+body.bg-color {
+    background-image: url('../img/pasha_bg1.jpg');
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    background-size: cover;
+}
+.btn-outline-secondary {
+    color: #949494;
+    border-color: #b6b7b8;
+}
+.container {
+    max-width: 400px;
+}
+.logo {
+    font-size: 2.5rem;
+    font-weight: 800;
+}
+.date {
+    font: 700 .9rem "Open Sans", sans-serif;
+}
+.maindate {
+    font: 800 .8rem "Open Sans", sans-serif;
+    margin-top:4px;
+    margin-bottom:4px;
+}
+.start-btn {
+    width: 175px;
+    height: 60px;
+    border-radius: 6px;
+    font-size: 1.5rem;
+    color: #fff;
+    background-color: #2d4165;
+    border-color: #334870;
+}
+.end-btn {
+    width: 175px;
+    height: 60px;
+    border-radius: 6px;
+    font-size: 1.5rem;
+    color: #fff;
+    background-color: #952f3b;
+    border-color: #a73c49;
+}
+.timer {
+    font-size: 3rem;
+}
+.timer .seconds {
+    font-size: 1.5rem;
+    vertical-align: super;
+}
+.meeting-title {
+    font-size: 1.5rem;
+    word-wrap: break-word;
+}

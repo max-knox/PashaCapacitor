@@ -1,0 +1,23 @@
+{
+  "appId": "com.pasha.com",
+  "appName": "Pasha",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true,
+    "allowNavigation": ["*"]
+  },
+  "plugins": {
+    "SpeechRecognition": {
+      "androidPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.INTERNET"
+      ]
+    },
+    "TextToSpeech": {
+      "androidPermissions": [
+        "android.permission.TTS"
+      ]
+    }
+  }
+}

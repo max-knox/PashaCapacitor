@@ -1,0 +1,362 @@
+/* Horizon Next Gen UX / UI - Production */
+.agent_screen {
+    display: flex;
+    flex-flow: column;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1;
+    background-color: rgb(53, 53, 53);
+}
+.audio-wave-container {
+    display: flex;
+    width: 100%;
+    height: 120px;
+}
+#waveSvg {
+    width: 100%;
+    height: 100%;
+}
+#wavePath {
+    width: 100%;
+}
+.agent_s1 {
+    display: flex;
+    flex-flow:column;
+    justify-content: center;
+    align-items: center;
+    flex: 2;
+    width: 100%;
+}
+.agent_s2 {
+    display: flex;
+    flex: 1;
+    height: 120px;
+    width: 100%;
+    overflow: hidden;
+}
+.agent_s3 {
+    display: flex;
+    flex-flow: row nowrap;
+    background-color: rgba(22, 22, 22, 0.175);
+    width: 100%;
+    min-height: 80px;
+}
+.voiceSpan { 
+    color: rgb(255, 255, 255);
+    font: 600 1rem Montserrat, sans-serif;
+}
+.voice_status {
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    background-color: rgb(29, 29, 29);
+}
+.voice_controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60%;
+    width: 100%;
+    background-color: rgb(29, 29, 29);
+    padding: 4px;
+    gap: 4px;
+}
+.voice_controls button {
+    flex:1;
+    margin: 0;
+    font: 500 .9rem Montserrat, sans-serif;
+    color:#2f2f2f;
+}
+.agent_bwrapText {
+    display: flex;
+    flex: 0 0 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(57, 57, 57);
+}
+.agent_bwrap1 {
+    display: flex;
+    flex: 0 0 70%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(57, 57, 57);
+}
+.agent_bwrap2 {
+    display: flex;
+    flex: 0 0 30%;
+    justify-content: center;
+    align-items: center;
+    background-image: linear-gradient(0deg, rgb(29, 29, 29) 40.91%, #2e2e2e 40.91%, #2f2f2f 50%, #303030 50%, #303030 90.91%, #303030 90.91%, #303030 100%);
+    background-size: 6px 6px;
+    background-repeat: repeat;
+    background-position: top center;
+}
+.microphone-container {
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgb(160, 0, 0);
+}
+.microphone-icon {
+    width: 24px;
+    height: 24px;
+    color: rgb(96, 0, 128);
+}
+
+.agent-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: rgb(29, 29, 29);
+    background-clip: border-box;
+    border: 2px solid rgb(29, 29, 29);
+    border-radius: .35rem;
+}
+.agent-card-body {
+    display:flex;
+    flex: 1;
+    flex-flow:column;
+    padding: 1rem 1rem;
+    align-items:center;
+    justify-content:center;
+    background-image: linear-gradient(0deg, rgb(29, 29, 29) 40.91%, #2e2e2e 40.91%, #2f2f2f 50%, #303030 50%, #303030 90.91%, #303030 90.91%, #303030 100%);
+    background-size: 6px 6px;
+    background-repeat: repeat;
+    background-position: top center;
+}
+.agent-card-title {
+    font: 600 1.1rem Montserrat, sans-serif !important;
+    color: rgb(255, 255, 255);
+    text-align: center;
+}
+
+
+
+.about_wrapper {
+    display:flex;
+    flex:1;
+    flex-flow:column;
+    justify-content:flex-start;
+    align-items: center;
+}
+.infocard {
+    position: relative;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    width: 320px;
+    height: 80px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    background-color:#4cba40;
+    transition: background-image 0.6s ease-in-out;
+    box-shadow: rgba(50, 50, 93, 0.35) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.4) 0px 18px 36px -18px inset;
+    text-decoration:none;
+    padding:30px 10px;
+    text-align:center;
+    cursor:pointer;
+}
+.infocard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(to right top, #051937, #004d7a, #008793, #00bf72, #a8eb12);
+    box-shadow: rgba(6, 24, 44, 0.1) 0px 0px 0px 2px, rgba(6, 24, 44, 0.25) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset;
+    border-radius: 8px;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 1;
+    z-index: 0;
+}
+
+.dashinfocard {
+    position: relative;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    background-color:#4cba40;
+    transition: background-image 0.6s ease-in-out;
+    box-shadow: rgba(50, 50, 93, 0.35) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.4) 0px 18px 36px -18px inset;
+    text-decoration:none;
+    padding:28px 30px;
+    text-align:center;
+    cursor:pointer;
+}
+.dashinfocard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(to right top, #051937, #004d7a, #008793, #00bf72, #a8eb12);
+    box-shadow: rgba(6, 24, 44, 0.1) 0px 0px 0px 2px, rgba(6, 24, 44, 0.25) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset;
+    border-radius: 8px;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 1;
+    z-index: 0;
+}
+
+/* Different classes for different initial gradients */
+.grad1::before {
+    background-image: linear-gradient(to right top, #051937, #004d7a, #008793, #00bf72, #a8eb12);
+}
+.grad2::before {
+    background-image: linear-gradient(to right top, #051937, #202c6b, #57389c, #9c37c3, #eb12de);
+}
+.grad3::before {
+    background-image: linear-gradient(to right top, #051937, #123560, #1c558c, #1f77bb, #129beb);
+}
+.grad4::before {
+    background-image: linear-gradient(to right top, #5c5c5c, #707070, #858585, #9a9a9a, #b0b0b0);
+}
+.grad5::before {
+    background-image: linear-gradient(to right top, #2c2a2a, #323131, #393838, #3f3f3f, #464646);
+}
+.infocard:hover::before {
+    opacity: 0;
+}
+.dashinfocard:hover::before {
+    opacity: 0;
+}
+.panel_copy {
+    color: white;
+    text-align:center;
+    font: 500 .9rem Montserrat, sans-serif;
+    margin:20px;
+}
+.infotext {
+    position: relative;
+    z-index: 1;
+    color: white;
+    text-align:center;
+    font: 600 1rem Montserrat, sans-serif;
+}
+#waveSvg {
+    width: 100%;
+    height: 100%;
+    background: #f3f3f300;
+    overflow: hidden;
+}
+.agent-section {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding:0;
+}
+.agent_left {
+    display:flex;
+    flex-flow:column;
+    background-color: #f1f1f1;
+    overflow: hidden;
+}
+.agent_right {
+    background-color: #e9e9e9;
+    overflow:hidden;
+    flex-grow: 1;
+}
+.agent_screen_more {
+    display:none;
+}
+.agent_welcome {    
+    background-image: url('../img/agents/agent1welcome.jpg');
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: cover;
+}
+.agent_2 {    
+    background-image: url('../img/agents/agent2.jpg');
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: cover;
+}
+.agent_1 {    
+    background-image: url('../img/agents/agent1.jpg');
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: cover;
+}
+.nda_bg_dash {
+    background-image: url(../img/nda_bg_tint.jpg);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    display:flex;
+    width:100%;
+    height:360px;
+}
+.agent_controlls {
+    display: none;
+}
+@media (min-width: 992px) {
+    .agent-section {
+        flex-direction: row;
+    }
+    .agent_left {
+        width: 400px;
+    }
+    .agent_right {
+        width: calc(100% - 400px);
+    }
+    .agent_screen {
+        flex: 0 0 400px;
+    }
+    .agent_screen_more {
+        display:flex;
+        flex:1;
+        background-color:rgb(44, 44, 46);
+    }
+}
+@media (max-width: 991px) {
+    .agent_left {
+        flex: 0 0 380px;
+    }
+    .agent_welcome {    
+        background-position: 50% 20%;
+    }
+    .infocard {
+        width: 100%;
+        height: auto;
+        min-height:80px;
+    }
+    .msg-bubble {
+        width:100%;
+    }
+    .nda_b_dash {
+        display:none;
+    }
+    .msger-header-agent {
+        display:none;
+    }
+    .agent_controlls {
+        display: flex;
+        flex-flow: row nowrap;
+        background-color: rgba(22, 22, 22, 0.175);
+        width: 100%;
+        min-height: 80px;
+        position: fixed; 
+        bottom: 0; 
+        left: 0;
+        z-index: 9999;
+    }
+}

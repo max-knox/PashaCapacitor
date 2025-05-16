@@ -1,0 +1,620 @@
+/* pasha_beta.css */
+
+/* Base Styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+.highest_index {
+    z-index: 2147483647;
+}
+
+.pasha-dash {
+    display:flex;
+    width:100%;
+    height:130px;
+    align-items:center;
+    justify-content:center;
+}
+
+/* Font Styles */
+.amaranth-regular {
+    font-family: "Amaranth", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.splash_intro {
+    font: 600 1.5rem "Amaranth", sans-serif !important;
+    color: white;
+    margin: 20px 30px;
+    text-align: center;
+}
+
+.splash_intro_text {
+    font: 400 .9rem "Open Sans", sans-serif !important;
+    color: white;
+    margin: 0px 30px;
+    text-align: center;
+}
+
+.pashaLogoText {
+    font-family: 'Terminal Dosis Medium', sans-serif;
+    font-weight: 600;
+    font-style: normal;
+    color: #efefef;
+    font-size:1rem;
+}
+
+/* Loading Screen */
+.bot_load {
+    display: flex;
+    flex: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: #fff;
+    z-index: 2147483647;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background-image: url(../img/nda_bg_tint.jpg);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+}
+
+.pre_wrapper_clear {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    height: auto;
+    margin: 0 20px;
+    min-width: 300px;
+    max-width: 420px;
+    background-color: rgba(17, 30, 43, 0.776);
+}
+
+.nda_bar {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 38px;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-image: linear-gradient(0deg, rgb(29, 29, 29) 40.91%, #2e2e2e 40.91%, #2f2f2f 50%, #303030 50%, #303030 90.91%, #303030 90.91%, #303030 100%);
+    background-size: 6px 6px;
+    background-repeat: repeat;
+    background-position: top center;
+}
+
+/* Main Layout */
+.agent-section {
+    display:flex;
+    flex-flow:row;
+    height: 100%;
+    padding: 0;
+    flex:1;
+}
+
+.agent_left {
+    display: flex;
+    flex-flow: column;
+    background-color: #f1f1f1;
+    overflow: hidden;
+    width:50%;
+}
+
+.agent_right {
+    display: flex;
+    position:relative;
+    flex-flow: column;
+    justify-content: flex-end;
+    background-color: #e9e9e9;
+    overflow: hidden;
+    flex-grow: 1;
+    height: 100vh;
+    width: 50%;
+    box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.2); /* Add the inner shadow */
+    overflow: hidden;
+}
+
+/* Agent Screen Components */
+.agent_screen {
+    display: flex;
+    flex-flow: column;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1;
+    overflow:hidden;
+}
+
+/* Agent Sections */
+.agent_s1, .agent_s2, .agent_s3 {
+    display: flex;
+    width: 100%;
+}
+
+.agent_s2 {
+    flex: 1;
+    height: 120px;
+    overflow: hidden;
+}
+
+.agent_s3 {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 20px 0 0 25px; /* Added left padding */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar but keep functionality */
+.agent_s3::-webkit-scrollbar {
+    display: none;
+}
+
+.agent_s3 {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Hero & Chat Components */
+.horizon_hero {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    text-align: left;
+}
+
+.hero_bg1 {
+    position: relative;
+    background-image: url(../img/chat_bg.jpg);
+    background-repeat: repeat;
+    background-position: center center;
+    background-size: auto;
+}
+
+.horizon_bot {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-y: scroll;
+}
+
+/* Messenger Components */
+.msger {
+    display: block;
+    height: 100%;
+}
+
+.msger-header-agent {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px;
+    color: #efefef;
+    width: 100%;
+    height: 38px;
+    z-index: 999;
+    overflow: hidden;
+    background-color:#353535;
+}
+
+.msger-chat-welcome {
+    display: flex;
+    overflow-y: scroll;
+    padding: 10px 10px 120px 10px;
+    flex-flow: column;
+    justify-content: flex-end;
+}
+
+.agent_bwrap1 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color:#353535;
+    height:38px;
+    width:100%;
+}
+.voiceSpan {
+    color: rgb(255, 255, 255);
+    font: 600 1rem 'Terminal Dosis Medium', sans-serif;
+    letter-spacing: 0.5px;
+}
+.agent_bwrap2 {
+    display: flex;
+    flex: 0 0 30%;
+    justify-content: center;
+    align-items: center;
+    background-color:#efefef;
+}
+
+.voice_status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+
+.voice_controls {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    height: 60%;
+    width: 100%;
+    padding: 4px;
+    gap: 4px; 
+}
+
+.voice_controls button {
+    width: 50%;
+    box-sizing: border-box; 
+}
+
+.microphone-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgb(112, 112, 112);
+}
+
+#timerCount {
+    font: 700 1.3rem Montserrat, sans-serif !important;
+    color: white;
+}
+
+/* Info Cards */
+.about_wrapper {
+    display: flex;
+    flex: 1;
+    flex-flow: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.infocard {
+    position: relative;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    width: 320px;
+    height: 80px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    background-color: #4cba40;
+    transition: background-image 0.6s ease-in-out;
+    box-shadow: rgba(50, 50, 93, 0.35) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.4) 0px 18px 36px -18px inset;
+    text-decoration: none;
+    padding: 30px 10px;
+    text-align: center;
+}
+
+.infocard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(to right top, #051937, #004d7a, #008793, #00bf72, #a8eb12);
+    box-shadow: rgba(6, 24, 44, 0.1) 0px 0px 0px 2px, rgba(6, 24, 44, 0.25) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset;
+    border-radius: 8px;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 1;
+    z-index: 0;
+}
+
+.infocard:hover::before {
+    opacity: 0;
+}
+
+.grad5::before {
+    background-image: linear-gradient(to right top, #2c2a2a, #323131, #393838, #3f3f3f, #464646);
+}
+
+.infotext {
+    position: relative;
+    z-index: 1;
+    color: white;
+    text-align: center;
+    font: 600 1rem Montserrat, sans-serif;
+}
+
+.panel_copy {
+    color: white;
+    text-align: center;
+    font: 500 .9rem Montserrat, sans-serif;
+    margin: 20px;
+}
+.msg {
+    display: flex;
+    position:relative;
+    align-items: flex-end;
+    margin-bottom: 18px;
+    z-index:99;
+}
+.msg:last-of-type {
+    margin: 0;
+}
+.left-msg .msg-bubble {
+    border-bottom-left-radius: 0;
+}
+.left-msg .msg-bubble .msg-text {
+    text-align:start;
+}
+.right-msg {
+    margin-top:18px;
+    flex-direction: row-reverse;
+  }
+.right-msg .msg-bubble {
+    background: var(--right-msg-bg);
+    color: #313131;
+    border-bottom-right-radius: 0;
+    background-color:rgb(235, 234, 212);
+    box-shadow: 0px 10px 1px rgb(208, 208, 208), 0 10px 20px rgb(185, 185, 185);
+}
+.right-msg .msg-bubble .msg-text {
+    text-align:end;
+}
+.right-msg .msg-img {
+    margin: 0 0 0 10px;
+    font: 800 1rem Montserrat, sans-serif;
+    box-shadow: 0px 10px 1px rgb(208, 208, 208), 0 10px 20px rgb(185, 185, 185);
+}
+.msg-img {
+    display:flex;
+    flex:0 0 50px;
+    height:50px;
+    margin-right: 10px;
+    background: rgb(235, 234, 212);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    border-radius: 50%;
+    box-shadow: 0px 10px 1px rgb(208, 208, 208), 0 10px 20px rgb(185, 185, 185);
+  }
+
+  .msg-bubble {
+    width: 100%; 
+    max-width: 50vw;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.82);
+    box-shadow: 0px 10px 1px rgb(208, 208, 208), 0 10px 20px rgb(185, 185, 185);
+}
+
+.btn-welcome {
+    background-color:#eeeeee;
+    font: 800 .9rem "Open Sans", sans-serif;
+    border:none;
+    color:#003262;
+    padding:18px 32px;
+    margin-left: auto !important; 
+     margin-right: auto !important;
+}
+.btn-welcome:hover {
+    background-color:#5396c3;
+    font: 800 .9rem "Open Sans", sans-serif;
+    border:none;
+    color:#ffffff;
+    padding:18px 32px;
+}
+.msger-header-agent {
+    display: flex;
+}
+/* Console Styles */
+.agent_s2 {
+    position: relative;
+    display: flex;
+    flex: 1;
+    height: 120px;
+    background-color: #0e2336;
+    overflow: hidden;
+}
+
+.console-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    padding: 10px;
+    font-family: 'Terminal Dosis Light', sans-serif;
+    color: #8cc6fa;
+    font-size: 12px;
+    z-index: 1;
+}
+
+.agent_s1 {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.85);
+    overflow: hidden;
+    height:50px;
+}
+
+#sphereCanvas {
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+    background: transparent;
+}
+
+.console-log {
+    display:flex;
+    flex-flow:column;
+    align-items:flex-start;
+    justify-content:flex-start;
+    margin: 2px 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.console-time {
+    color: #cdc7a9;
+    margin-right: 8px;
+}
+
+.console-type {
+    margin-right: 8px;
+}
+
+.console-type-log {
+    color: #00ff00;
+}
+
+.console-type-error {
+    color: #ff0000;
+}
+
+.console-type-warn {
+    color: #ffff00;
+}
+.halo-color {
+    color: #ffffff94;
+}
+
+.datetime-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 20px;
+    max-width: 300px;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0px 10px 1px rgb(208, 208, 208), 0 10px 20px rgb(185, 185, 185);
+}
+
+.datetime-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.datetime-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.datetime-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #666;
+    padding: 0 5px;
+    transition: color 0.2s;
+}
+
+.datetime-header .close-btn:hover {
+    color: #333;
+}
+
+.datetime-content {
+    text-align: center;
+}
+
+.datetime-content .time {
+    font-size: 2em;
+    font-weight: bold;
+    color: #3e6cc1;
+    margin-bottom: 10px;
+}
+
+.datetime-content .date {
+    font-size: 1.2em;
+    color: #666;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (orientation: landscape) {
+
+}
+
+@media (orientation: portrait) and (max-width: 640px) {
+    /* Agent Screen Components */
+    .agent_screen {
+        display: flex;
+        flex-flow: column;
+        justify-content: flex-end;
+        align-items: center;
+        flex: 1;
+        height:25vh;
+    }
+    .pasha-dash {
+        height:130px;
+    }
+    .sphere-canvas {
+        width: 225px;    /* 376px * 0.6 = ~225px (40% smaller) */
+        height: 144px;   /* 240px * 0.6 = 144px (40% smaller) */
+    }
+    .agent-section {
+        flex-flow:column;
+    }
+    .agent_left {
+        flex: 0 0 380px;
+        width: 100%;
+        order: 1; /* Changed from 2 to 1 */
+    }
+    .agent_right {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+        flex: 1;
+        order: 2; /* Changed from 1 to 2 */
+        width:100%;
+    }
+    .infocard {
+        width: 100%;
+        height: auto;
+        min-height: 80px;
+    }
+    .msger-header-agent {
+        display: none;
+    }
+    .msg-bubble {
+        max-width: 100%;
+    }
+}
