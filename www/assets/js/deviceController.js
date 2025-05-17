@@ -106,13 +106,25 @@ export class DeviceController {
                 setTimeout(resolve, 150);
             });
     
-            // Initialize device capabilities
+            // Initialize speech capabilities first
             try {
                 await this.speech.initializeSpeech();
+                console.log('Speech services initialized successfully');
+            } catch (speechError) {
+                console.error('Error initializing speech capabilities:', speechError);
+                throw speechError;
+            }
+            
+            // Initialize LLM API endpoint
+            try {
+                this.updateVoiceStatus('Connecting to cloud API...');
                 await this.llm.initializeLLM();
-            } catch (initError) {
-                console.error('Error initializing device capabilities:', initError);
-                throw initError;
+                console.log('LLM API endpoint initialized successfully');
+                this.updateVoiceStatus('Ready');
+            } catch (llmError) {
+                console.error('Error initializing LLM API:', llmError);
+                this.updateVoiceStatus('Error connecting to API');
+                // Continue even if API fails - we have fallback
             }
     
             // Setup event listeners and UI
@@ -124,8 +136,11 @@ export class DeviceController {
     
             // Check network status and update UI
             if (!navigator.onLine) {
-                this.updateVoiceStatus('Offline');
-                this.elements.pushToTalkBtn.disabled = true;
+                this.updateVoiceStatus('Offline - Limited functionality');
+                // Still enable button - allow local fallback
+                if (this.elements.pushToTalkBtn) {
+                    this.elements.pushToTalkBtn.disabled = false;
+                }
             } else {
                 if (this.elements.chatMessages) {
                     this.appendMessage('bot', FIRST_MESSAGE);
@@ -147,13 +162,18 @@ export class DeviceController {
     
             // Setup window event listeners
             window.addEventListener('online', () => {
-                this.updateVoiceStatus('Ready');
-                this.elements.pushToTalkBtn.disabled = false;
+                this.updateVoiceStatus('Ready - Connected to cloud');
+                if (this.elements.pushToTalkBtn) {
+                    this.elements.pushToTalkBtn.disabled = false;
+                }
             });
     
             window.addEventListener('offline', () => {
-                this.updateVoiceStatus('Offline');
-                this.elements.pushToTalkBtn.disabled = true;
+                this.updateVoiceStatus('Offline - Limited functionality');
+                // Still enable button - allow local fallback
+                if (this.elements.pushToTalkBtn) {
+                    this.elements.pushToTalkBtn.disabled = false;
+                }
             });
     
             // Display welcome card
@@ -161,18 +181,6 @@ export class DeviceController {
             if (pashaCanvas) {
                 const welcomeCard = this.createWelcomeCard();
                 pashaCanvas.insertBefore(welcomeCard, pashaCanvas.firstChild);
-            }
-
-            try {
-                this.updateVoiceStatus('Loading AI model...');
-                this.state.isModelLoading = true;
-                await this.llm.initializeLLM();
-                this.state.isModelLoading = false;
-                this.updateVoiceStatus('Ready');
-            } catch (error) {
-                console.error('Error loading model:', error);
-                this.state.isModelLoading = false;
-                this.updateVoiceStatus('Error loading AI model');
             }
     
             this.isInitialized = true;

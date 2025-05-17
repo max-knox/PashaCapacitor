@@ -1,11 +1,9 @@
 // www/assets/js/deviceLLM.js
 
-// Update imports to use relative paths
-import { LLM } from './llm/llama-cpp.js';
-import { Filesystem } from './capacitor/filesystem.js';
+// import { Filesystem } from './capacitor/filesystem.js';  no longer using file system for server connections
 
 export const DeviceLLM = {
-    // Existing directory and storage keys
+    // Company directory
     companyDirectory: [
         { name: "Steve Mikhov", aliases: ["Mr. Mikhov", "Steve"], role: "Boss", description: "oversees meetings, asks questions" },
         { name: "Jose Alba", aliases: ["Jose"], role: "General Manager", description: "leads meetings, provides updates, deals with vendors" },
@@ -19,98 +17,193 @@ export const DeviceLLM = {
     MEETINGS_STORAGE_KEY: 'pasha_meetings',
     SESSIONS_STORAGE_KEY: 'pasha_sessions',
 
-    // LLM-specific properties
-    llm: null,
-    isInitialized: false,
-    useFallback: false,
-    modelConfig: {
-        path: 'assets/llm/llama.gguf',
-        contextSize: 2048,
-        threads: 4,
-        batchSize: 512,
-        temperature: 0.7,
-        topP: 0.9,
-        maxTokens: 1000
-    },
+ // Updated server configuration
+ serverConfig: {
+    baseUrl: 'http://192.168.42.2:1337', // Jetson's USB interface IP
+    endpoints: {
+        chat: '/v1/chat/completions'
+    }
+},
 
-    async initializeLLM() {
-        try {
-            console.log('Starting LLM initialization...');
-            
-            if (this.isInitialized) {
-                console.log('LLM already initialized');
-                return true;
-            }
+isInitialized: false,
+useFallback: false,
 
-            // Check if LLAMA script is available
-            try {
-                await fetch('/assets/js/llm/llama.min.js', { method: 'HEAD' });
-            } catch (error) {
-                console.error('LLAMA script not found:', error);
-                this.useFallback = true;
-                return false;
-            }
-
-            // Initialize LLM with simplified config
-            this.llm = new LLM(this.modelConfig);
-            await this.llm.load();
-            
-            this.isInitialized = true;
-            this.useFallback = false;
-            console.log('LLM initialized successfully');
-            return true;
-        } catch (error) {
-            console.error('LLM initialization failed:', error);
-            this.useFallback = true;
-            this.isInitialized = false;
-            return false;
+async detectConnection() {
+    // Check if USB connection is available first
+    try {
+        const response = await fetch('http://192.168.42.2:1337/v1/chat/completions', {
+            method: 'OPTIONS'
+        });
+        if (response.ok) {
+            this.serverConfig.baseUrl = 'http://192.168.42.2:1337';
+            return;
         }
-    },
+    } catch (e) {
+        console.log('USB connection not available, falling back to WiFi');
+        this.serverConfig.baseUrl = 'http://172.17.1.156:1337';
+    }
+},
 
-    async generateResponse(prompt, sessionId) {
-        try {
-            if (!this.isInitialized || this.useFallback) {
-                return this.generateFallbackResponse(prompt);
-            }
+async initializeLLM() {
+    try {
+        console.log('Starting LLM initialization...');
+        const baseUrl = this.serverConfig.baseUrl;
+        const chatEndpoint = `${baseUrl}${this.serverConfig.endpoints.chat}`;
+        
+        const startTime = Date.now();
+        console.log('Request start time:', new Date(startTime).toISOString());
+        
+        const requestBody = {
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a helpful assistant.",
+                    name: "system"
+                },
+                {
+                    role: "user",
+                    content: "Hello",
+                    name: "user"
+                }
+            ],
+            model: "deepseek-r1:14b",
+            stream: false,
+            temperature: 0.8,
+            top_p: 0.95
+        };
 
-            console.log('Generating response for:', prompt);
-            
-            // Prepare the prompt with context
-            const session = await this.getOrCreateSession(sessionId);
-            const contextPrompt = this.prepareContextPrompt(session.context, prompt);
-            
-            // Generate completion
-            const response = await this.llm.complete({
-                prompt: contextPrompt,
-                maxTokens: this.modelConfig.maxTokens,
-                temperature: this.modelConfig.temperature,
-                topP: this.modelConfig.topP
-            });
+        const controller = new AbortController();
+        const TIMEOUT_MS = 90000; // Increased to match server timeout
+        const timeoutId = setTimeout(() => {
+            console.log(`Request timed out after ${TIMEOUT_MS}ms`);
+            controller.abort();
+        }, TIMEOUT_MS);
 
-            // Process and clean the response
-            const cleanResponse = this.processResponse(response.text);
-            
-            // Update session with the interaction
-            await this.updateSession(
-                sessionId,
-                [
-                    { role: 'user', content: prompt },
-                    { role: 'assistant', content: cleanResponse }
-                ],
-                prompt,
-                cleanResponse
-            );
+        console.log('Request body:', JSON.stringify(requestBody));
+        console.log('Network status:', navigator.onLine);
+        console.log('Request URL:', chatEndpoint);
 
-            return {
-                text: cleanResponse,
-                cardData: this.extractCardData(prompt, cleanResponse),
-                usage: response.usage
-            };
-        } catch (error) {
-            console.error('Error generating response:', error);
+        // Mobile-optimized fetch configuration
+        const response = await fetch(chatEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Connection': 'keep-alive',
+                'Keep-Alive': 'timeout=90',
+                'X-Client-Type': 'capacitor-mobile'
+            },
+            credentials: 'omit',
+            body: JSON.stringify(requestBody),
+            signal: controller.signal,
+            mode: 'cors',
+            cache: 'no-cache',
+            keepalive: true
+        });
+
+        clearTimeout(timeoutId);
+        
+        const endTime = Date.now();
+        console.log('Response received after:', endTime - startTime, 'ms');
+
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+        }
+
+        const text = await response.text();
+        console.log('Response text:', text);
+
+        const data = JSON.parse(text);
+        this.isInitialized = true;
+        this.useFallback = false;
+        return true;
+
+    } catch (error) {
+        console.error('LLM initialization failed:', error);
+        
+        // Enhanced error logging for mobile
+        console.log('Network diagnostics:', {
+            online: navigator.onLine,
+            effectiveType: navigator.connection?.effectiveType,
+            downlink: navigator.connection?.downlink,
+            rtt: navigator.connection?.rtt,
+            timeStamp: new Date().toISOString(),
+            errorType: error.name,
+            errorMessage: error.message
+        });
+        
+        this.useFallback = true;
+        this.isInitialized = false;
+        return false;
+    }
+},
+
+async generateResponse(prompt, sessionId) {
+    try {
+        if (!this.isInitialized || this.useFallback) {
             return this.generateFallbackResponse(prompt);
         }
-    },
+
+        const session = await this.getOrCreateSession(sessionId);
+        
+        const payload = {
+            messages: [
+                ...session.context,
+                { role: 'user', content: prompt }
+            ],
+            model: "deepseek-r1:14b",
+            stream: false,
+            temperature: 0.8,
+            top_p: 0.95
+        };
+
+        const response = await fetch(`${this.serverConfig.baseUrl}${this.serverConfig.endpoints.chat}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'omit',
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.choices?.[0]?.message) {
+            throw new Error('Invalid response format from server');
+        }
+
+        const cleanResponse = result.choices[0].message.content;
+
+        await this.updateSession(
+            sessionId,
+            [
+                { role: 'user', content: prompt },
+                { role: 'assistant', content: cleanResponse }
+            ],
+            prompt,
+            cleanResponse
+        );
+
+        return {
+            text: cleanResponse,
+            cardData: this.extractCardData(prompt, cleanResponse),
+            usage: result.usage || {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0
+            }
+        };
+
+    } catch (error) {
+        console.error('Error generating response:', error);
+        return this.generateFallbackResponse(prompt);
+    }
+},
 
     generateFallbackResponse(prompt) {
         console.log('Using fallback response for:', prompt);
@@ -179,7 +272,6 @@ export const DeviceLLM = {
         return null;
     },
 
-    // Keep existing helper methods
     findPersonInDirectory(name) {
         const normalizedName = name.toLowerCase();
         return this.companyDirectory.find(person => 
@@ -308,7 +400,6 @@ export const DeviceLLM = {
         }
         
         if (promptLower.includes('action') || promptLower.includes('task')) {
-                        response += `${item.what}\n`;
             return "I can help you track action items and tasks. Would you like to see your current tasks or create new ones?";
         }
         

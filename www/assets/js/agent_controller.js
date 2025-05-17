@@ -141,7 +141,7 @@ export class AgentController {
       chatMessages: document.getElementById("chat-messages"),
       loader: document.getElementById("loader"),
       voiceAction: document.getElementById("voice-action"),
-      pauseButton: document.querySelector('.pauseApplication'),
+      pauseButton: document.querySelector('.pause-btn'),
       continueButton: document.getElementById("continueVoice"),
       sphereCanvas: document.getElementById('sphereCanvas'),
       timerElement: document.getElementById('timerCount')
