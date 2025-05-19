@@ -694,24 +694,41 @@ export class DeviceController {
     
         switch (state) {
             case 'audio_playing':
+                // Make pause button visible
                 this.elements.pauseButton.style.display = 'flex';
                 this.elements.pauseButton.classList.add('visible');
                 this.elements.pauseButton.textContent = 'PAUSE';
+                
+                // Disable push to talk button but keep it visible
                 this.elements.pushToTalkBtn.disabled = true;
                 this.elements.pushToTalkBtn.textContent = 'PUSH TO TALK';
+                this.elements.pushToTalkBtn.style.opacity = '0.7'; // Make it appear disabled
                 break;
                 
             case 'audio_paused':
+                // Keep pause button visible but change text to RESUME
+                this.elements.pauseButton.style.display = 'flex';
+                this.elements.pauseButton.classList.add('visible');
                 this.elements.pauseButton.textContent = 'RESUME';
+                
+                // Enable push to talk button and change text
                 this.elements.pushToTalkBtn.disabled = false;
+                this.elements.pushToTalkBtn.style.opacity = '1';
                 this.elements.pushToTalkBtn.textContent = 'ASK NEW QUESTION';
                 break;
                 
             case 'ready':
+                // Hide pause button
                 this.elements.pauseButton.style.display = 'none';
                 this.elements.pauseButton.classList.remove('visible');
+                
+                // Enable push to talk button with original text
                 this.elements.pushToTalkBtn.disabled = false;
+                this.elements.pushToTalkBtn.style.opacity = '1';
                 this.elements.pushToTalkBtn.textContent = 'PUSH TO TALK';
+                
+                // Reset any stored audio state
+                this.uiStates.isAudioPaused = false;
                 break;
         }
     
@@ -724,7 +741,8 @@ export class DeviceController {
             },
             pushToTalkBtn: {
                 disabled: this.elements.pushToTalkBtn.disabled,
-                text: this.elements.pushToTalkBtn.textContent
+                text: this.elements.pushToTalkBtn.textContent,
+                opacity: this.elements.pushToTalkBtn.style.opacity
             }
         });
     }
@@ -753,22 +771,40 @@ export class DeviceController {
         console.log('Handle pause/resume:', {
             paused: this.elements.audioPlayer.paused,
             currentTime: this.elements.audioPlayer.currentTime,
-            duration: this.elements.audioPlayer.duration
+            duration: this.elements.audioPlayer.duration,
+            isAgentSpeaking: this.state.isAgentSpeaking,
+            isAudioPaused: this.uiStates.isAudioPaused
         });
 
         try {
-            if (this.state.isAgentSpeaking) {
+            if (this.state.isAgentSpeaking && !this.uiStates.isAudioPaused) {
+                // Pause the audio
                 await this.speech.stopSpeaking();
+                this.uiStates.isAudioPaused = true;
                 this.updateButtonStates('audio_paused');
                 this.state.isAgentSpeaking = false;
-            } else {
+                console.log('Audio paused');
+            } else if (this.uiStates.isAudioPaused) {
+                // Resume the audio
                 await this.speech.speak(this.lastSpokenText);
+                this.uiStates.isAudioPaused = false;
+                this.updateButtonStates('audio_playing');
+                this.state.isAgentSpeaking = true;
+                console.log('Audio resumed');
+            } else {
+                // Fallback case
+                console.log('Unexpected state, attempting to resume audio');
+                await this.speech.speak(this.lastSpokenText || 'Sorry, I cannot resume playback.');
                 this.updateButtonStates('audio_playing');
                 this.state.isAgentSpeaking = true;
             }
         } catch (error) {
             console.error('Error in handlePauseResume:', error);
-            this.cleanupAudio();
+            // Reset to a clean state on error
+            this.uiStates.isAudioPaused = false;
+            this.state.isAgentSpeaking = false;
+            this.updateButtonStates('ready');
+            await this.cleanupAudio();
         }
     }
 
@@ -776,8 +812,16 @@ export class DeviceController {
         if (!userText || this.state.isProcessing) return;
 
         try {
+            // Check if we need to handle the "Ask New Question" scenario
+            if (this.uiStates.isAudioPaused) {
+                console.log('Starting new conversation from ASK NEW QUESTION button');
+                this.uiStates.isAudioPaused = false;
+                await this.cleanupAudio();
+            }
+
             this.state.isProcessing = true;
             this.updateVoiceStatus('Processing...');
+            this.updateButtonStates('ready'); // Reset buttons to default state
 
             if (this.elements.loader) {
                 this.elements.loader.style.display = "flex";
@@ -803,6 +847,9 @@ export class DeviceController {
             // Add bot message and speak response
             this.appendMessage('bot', response.text);
             this.lastSpokenText = this.cleanTextForSpeech(response.text);
+            
+            // Update UI before speaking
+            this.updateButtonStates('audio_playing');
             await this.speech.speak(this.lastSpokenText);
 
             this.updateVoiceStatus('Ready');
@@ -810,6 +857,7 @@ export class DeviceController {
             console.error('Error processing input:', error);
             this.appendMessage('bot', 'Sorry, I encountered an error. Please try again.');
             this.updateVoiceStatus('Error processing');
+            this.updateButtonStates('ready'); // Reset buttons to default state
         } finally {
             this.state.isProcessing = false;
             if (this.elements.loader) {
@@ -915,22 +963,31 @@ export class DeviceController {
     }
 
     handleAudioPlay() {
+        console.log('Audio playback started');
         this.state.isAgentSpeaking = true;
+        this.uiStates.isAudioPaused = false;
         this.updateVoiceStatus('Speaking');
         this.updateButtonStates('audio_playing');
     }
     
     handleAudioPause() {
+        console.log('Audio playback paused');
         if (this.state.isAgentSpeaking) {
+            this.uiStates.isAudioPaused = true;
             this.updateVoiceStatus('Paused');
             this.updateButtonStates('audio_paused');
         }
     }
     
     handleAudioEnded() {
+        console.log('Audio playback ended');
         this.state.isAgentSpeaking = false;
+        this.uiStates.isAudioPaused = false;
         this.updateVoiceStatus('Ready');
         this.updateButtonStates('ready');
+        
+        // Make sure TTS event is dispatched
+        window.dispatchEvent(new CustomEvent('ttsFinished'));
     }
 
 // deviceController.js - Part 4 (final part)
@@ -1095,12 +1152,28 @@ displayHistory() {
 
 async cleanupAudio() {
     try {
+        console.log('Cleaning up audio state');
+        
+        // Stop active speech
         await this.speech.stopSpeaking();
+        
+        // Reset all audio-related state flags
         this.state.isAgentSpeaking = false;
         this.state.isProcessing = false;
+        this.uiStates.isAudioPaused = false;
+        
+        // Reset UI elements
         this.updateButtonStates('ready');
+        this.updateVoiceStatus('Ready');
+        
+        // Make sure any pending TTS events are dispatched
+        window.dispatchEvent(new CustomEvent('ttsFinished'));
+        
+        console.log('Audio cleanup complete, state reset');
     } catch (error) {
         console.error('Error in cleanupAudio:', error);
+        // Even if there's an error, try to reset UI state
+        this.updateButtonStates('ready');
     }
 }
 
