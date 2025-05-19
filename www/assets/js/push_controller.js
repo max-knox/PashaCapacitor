@@ -20,7 +20,8 @@ export class PushController {
           pushToTalkBtn: null,
           voiceStatus: null,
           pushToTalkText: null,
-          pauseButton: null
+          pauseButton: null,
+          newQuestionBtn: null
         };
     
         this.audio = {
@@ -234,10 +235,11 @@ export class PushController {
             chatMessages: document.getElementById("chat-messages"),
             loader: document.getElementById("loader"),
             voiceAction: document.getElementById("voice-action"),
-            pushToTalkBtn: document.querySelector('button.push-talk-btn'),  // Updated
+            pushToTalkBtn: document.querySelector('button.push-talk-btn'),
             voiceStatus: document.querySelector('.voice_status'),
-            pushToTalkText: document.querySelector('button.push-talk-btn'),  // Updated
-            pauseButton: document.querySelector('button.pause-btn')  // Updated
+            pushToTalkText: document.querySelector('button.push-talk-btn'),
+            pauseButton: document.querySelector('button.pause-btn'),
+            newQuestionBtn: document.querySelector('button.new-question-btn')
         };
 
         console.log('Initialized elements:', this.elements);
@@ -256,6 +258,13 @@ export class PushController {
                 this.elements.pauseButton.classList.add('terminal-medium');
             }
         }
+        
+        if (this.elements.newQuestionBtn) {
+            this.elements.newQuestionBtn.style.display = 'none';
+            if (!this.elements.newQuestionBtn.classList.contains('terminal-medium')) {
+                this.elements.newQuestionBtn.classList.add('terminal-medium');
+            }
+        }
 
         for (const [key, element] of Object.entries(this.elements)) {
             if (!element) {
@@ -266,26 +275,56 @@ export class PushController {
 }
 
 updateButtonStates(state) {
-    if (!this.elements.pushToTalkBtn || !this.elements.pauseButton) return;
+    if (!this.elements.pushToTalkBtn || !this.elements.pauseButton || !this.elements.newQuestionBtn) return;
 
     switch (state) {
         case 'audio_playing':
-            this.elements.pauseButton.style.display = 'flex'; // Changed from 'block'
+            // Make sure pause button is visible and styled properly
+            this.elements.pauseButton.style.display = 'flex'; 
+            this.elements.pauseButton.style.opacity = '1';
             this.elements.pauseButton.classList.add('visible');
             this.elements.pauseButton.textContent = 'PAUSE';
-            this.elements.pushToTalkBtn.disabled = true;
-            this.elements.pushToTalkBtn.textContent = 'PUSH TO TALK';
+            
+            // Show new question button
+            this.elements.newQuestionBtn.style.display = 'flex';
+            this.elements.newQuestionBtn.style.opacity = '1';
+            this.elements.newQuestionBtn.classList.add('visible');
+            
+            // Hide push-to-talk during audio playback
+            this.elements.pushToTalkBtn.style.display = 'none';
             break;
             
         case 'audio_paused':
+            // Keep pause button visible but change text to RESUME
+            this.elements.pauseButton.style.display = 'flex'; 
+            this.elements.pauseButton.style.opacity = '1';
+            this.elements.pauseButton.classList.add('visible');
             this.elements.pauseButton.textContent = 'RESUME';
-            this.elements.pushToTalkBtn.disabled = false;
-            this.elements.pushToTalkBtn.textContent = 'ASK NEW QUESTION';
+            
+            // Keep new question button visible
+            this.elements.newQuestionBtn.style.display = 'flex';
+            this.elements.newQuestionBtn.style.opacity = '1';
+            this.elements.newQuestionBtn.classList.add('visible');
+            
+            // Hide push-to-talk
+            this.elements.pushToTalkBtn.style.display = 'none';
             break;
             
         case 'ready':
-            this.elements.pauseButton.style.display = 'none';
-            this.elements.pauseButton.classList.remove('visible');
+            // Hide pause button in ready state
+            this.elements.pauseButton.style.opacity = '0';
+            this.elements.newQuestionBtn.style.opacity = '0';
+            setTimeout(() => {
+                if (this.state.isAgentSpeaking === false) {
+                    this.elements.pauseButton.style.display = 'none';
+                    this.elements.pauseButton.classList.remove('visible');
+                    this.elements.newQuestionBtn.style.display = 'none';
+                    this.elements.newQuestionBtn.classList.remove('visible');
+                }
+            }, 300); // delay to allow fade-out animation
+            
+            // Show and enable push-to-talk button
+            this.elements.pushToTalkBtn.style.display = 'flex';
             this.elements.pushToTalkBtn.disabled = false;
             this.elements.pushToTalkBtn.textContent = 'PUSH TO TALK';
             break;
@@ -297,9 +336,16 @@ updateButtonStates(state) {
         pauseButton: {
             display: this.elements.pauseButton.style.display,
             text: this.elements.pauseButton.textContent,
-            visible: this.elements.pauseButton.classList.contains('visible')
+            visible: this.elements.pauseButton.classList.contains('visible'),
+            opacity: this.elements.pauseButton.style.opacity
+        },
+        newQuestionBtn: {
+            display: this.elements.newQuestionBtn.style.display,
+            visible: this.elements.newQuestionBtn.classList.contains('visible'),
+            opacity: this.elements.newQuestionBtn.style.opacity
         },
         pushToTalkBtn: {
+            display: this.elements.pushToTalkBtn.style.display,
             disabled: this.elements.pushToTalkBtn.disabled,
             text: this.elements.pushToTalkBtn.textContent
         }
@@ -334,6 +380,30 @@ async handlePauseResume() {
         console.error('Error in handlePauseResume:', error);
         this.cleanupAudio();
     }
+}
+
+async handleNewQuestion() {
+    console.log('New question requested while response is playing/paused');
+    
+    // Stop any ongoing audio
+    if (this.elements.audioPlayer) {
+        this.elements.audioPlayer.pause();
+    }
+    
+    // Clean up and reset state
+    await this.cleanupAudio();
+    
+    // Reset to listening state
+    this.state.isAgentSpeaking = false;
+    this.state.isProcessing = false;
+    this.updateVoiceStatus('Ready');
+    this.updateButtonStates('ready');
+    
+    // Prepare for recording
+    setTimeout(() => {
+        // Short delay to ensure UI updates before starting listening
+        this.startListening();
+    }, 300);
 }
 
 setupEventListeners() {
@@ -392,6 +462,13 @@ setupEventListeners() {
     if (this.elements.pauseButton) {
         this.elements.pauseButton.addEventListener('click', () => {
             this.handlePauseResume();
+        });
+    }
+    
+    // New Question Button Events
+    if (this.elements.newQuestionBtn) {
+        this.elements.newQuestionBtn.addEventListener('click', () => {
+            this.handleNewQuestion();
         });
     }
 
@@ -568,6 +645,10 @@ setupEventListeners() {
                 if (audioBlob.size > 0) {
                     const audioBase64 = await this.blobToBase64(audioBlob);
                     if (audioBase64) {
+                        // Show loader to indicate processing
+                        if (this.elements.loader) {
+                            this.elements.loader.style.display = "flex";
+                        }
                         await this.processSpeechToText(audioBase64);
                     }
                 } else {
@@ -592,13 +673,22 @@ setupEventListeners() {
       async processSpeechToText(audioContent, retries = 3) {
         try {
           console.log('Sending audio for asynchronous transcription...');
+          
+          // Flag to indicate we're in progress
+          this.transcriptionInProgress = true;
     
           const response = await fetch('https://us-central1-pa-sha.cloudfunctions.net/agent_async_stt', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ data: { audioContent } }),
+            body: JSON.stringify({ 
+              data: { 
+                audioContent,
+                processFull: true, // Flag to indicate we want full processing, not partial
+                sessionId: this.sessionId || 'session_' + Math.random().toString(36).substr(2, 9)
+              } 
+            }),
           });
     
           if (!response.ok) {
@@ -618,12 +708,17 @@ setupEventListeners() {
           await this.pollForTranscriptionResult(operationId);
         } catch (error) {
           console.error('Detailed error in async speech-to-text conversion:', error);
+          this.transcriptionInProgress = false;
+          
           if (retries > 0) {
             console.log(`Retrying speech-to-text conversion. Attempts left: ${retries - 1}`);
             await this.processSpeechToText(audioContent, retries - 1);
           } else {
             this.appendMessage('bot', 'I\'m having trouble understanding. Could you please try again?');
             this.updateVoiceStatus('Ready');
+            if (this.elements.loader) {
+              this.elements.loader.style.display = "none";
+            }
           }
         }
       }
@@ -634,6 +729,12 @@ setupEventListeners() {
     
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
           try {
+            // Skip polling if this isn't our latest transcription request
+            if (!this.transcriptionInProgress) {
+              console.log('Skipping poll as newer transcription is in progress');
+              return;
+            }
+            
             const response = await fetch(`https://us-central1-pa-sha.cloudfunctions.net/getTranscriptionResult?operationId=${operationId}`);
     
             if (!response.ok) {
@@ -644,21 +745,31 @@ setupEventListeners() {
     
             if (result.status === 'completed') {
               console.log('Transcription completed:', result.transcription);
+              this.transcriptionInProgress = false;
               await this.handleTranscriptionResult(result.transcription);
               return;
             } else if (result.status === 'failed') {
+              this.transcriptionInProgress = false;
               throw new Error('Transcription failed');
+            } else if (result.status === 'partial') {
+              // If we get a partial result, ignore it and continue polling
+              console.log('Partial result received, continuing to wait for full result');
             }
     
             await new Promise(resolve => setTimeout(resolve, pollingInterval));
           } catch (error) {
             console.error('Error polling for transcription result:', error);
+            this.transcriptionInProgress = false;
           }
         }
     
         console.error('Max polling attempts reached without completion');
         this.appendMessage('bot', 'Sorry, transcription is taking longer than expected. Please try again.');
         this.updateVoiceStatus('Ready');
+        if (this.elements.loader) {
+          this.elements.loader.style.display = "none";
+        }
+        this.transcriptionInProgress = false;
       }
     
       async handleTranscriptionResult(transcription) {
@@ -1007,12 +1118,35 @@ setupEventListeners() {
         this.state.isAgentSpeaking = true;
         this.updateVoiceStatus('Speaking');
         this.updateButtonStates('audio_playing');
+        
+        // Ensure buttons are in correct state
+        if (this.elements.pauseButton && this.elements.newQuestionBtn) {
+            // Set both buttons visible
+            this.elements.pauseButton.style.display = 'flex';
+            this.elements.pauseButton.classList.add('visible');
+            this.elements.pauseButton.textContent = 'PAUSE';
+            
+            this.elements.newQuestionBtn.style.display = 'flex';
+            this.elements.newQuestionBtn.classList.add('visible');
+            
+            // Hide push-to-talk
+            this.elements.pushToTalkBtn.style.display = 'none';
+        }
+        
+        console.log('Audio playback started, control buttons should be visible');
       }
       
       handleAudioPause() {
         if (this.state.isAgentSpeaking) {
           this.updateVoiceStatus('Paused');
           this.updateButtonStates('audio_paused');
+          
+          // Update button states
+          if (this.elements.pauseButton) {
+              this.elements.pauseButton.textContent = 'RESUME';
+          }
+          
+          console.log('Audio paused, showing RESUME and NEW QUESTION buttons');
         }
       }
       
@@ -1020,6 +1154,29 @@ setupEventListeners() {
         this.state.isAgentSpeaking = false;
         this.updateVoiceStatus('Ready');
         this.updateButtonStates('ready');
+        
+        // Hide control buttons and show push-to-talk when audio is done
+        if (this.elements.pauseButton && this.elements.newQuestionBtn) {
+            // Fade out
+            this.elements.pauseButton.style.opacity = '0';
+            this.elements.newQuestionBtn.style.opacity = '0';
+            
+            // Show push-to-talk
+            this.elements.pushToTalkBtn.style.display = 'flex';
+            this.elements.pushToTalkBtn.disabled = false;
+            
+            // After animation, hide completely
+            setTimeout(() => {
+                if (this.state.isAgentSpeaking === false) {
+                    this.elements.pauseButton.style.display = 'none';
+                    this.elements.pauseButton.classList.remove('visible');
+                    this.elements.newQuestionBtn.style.display = 'none';
+                    this.elements.newQuestionBtn.classList.remove('visible');
+                }
+            }, 300); // Short delay to avoid abrupt UI changes
+        }
+        
+        console.log('Audio ended, returning to push-to-talk mode');
       }
     
       async handleModeButtonClick(mode) {
