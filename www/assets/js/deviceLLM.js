@@ -33,6 +33,10 @@ export const DeviceLLM = {
         maxTokens: 1000
     },
 
+    // Endpoint configuration
+    chatCompletionEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/agent_completions',
+    fallbackEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/agent_completions',
+    
     async initializeLLM() {
         try {
             console.log('Setting up external API endpoint for LLM...');
@@ -42,11 +46,38 @@ export const DeviceLLM = {
                 return true;
             }
 
-            // For API-based LLM, we just need to set the initialized flag
-            // No need to load local models anymore
+            // Test the API endpoint to ensure it's working
+            try {
+                const response = await fetch(this.chatCompletionEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        prompt: 'test',
+                        sessionId: 'init_test_' + Date.now()
+                    })
+                });
+                
+                console.log('API endpoint test result:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`API endpoint test failed with status: ${response.status}`);
+                }
+                
+                // Parse response to ensure it's valid
+                const data = await response.json();
+                console.log('API initialization successful, response structure:', Object.keys(data));
+            } catch (endpointError) {
+                console.warn('Primary endpoint test failed:', endpointError.message);
+                console.log('Will use fallback endpoint for actual requests');
+                this.chatCompletionEndpoint = this.fallbackEndpoint;
+            }
+
+            // Mark as initialized
             this.isInitialized = true;
             this.useFallback = false;
-            console.log('LLM API endpoint initialized successfully');
+            console.log('LLM API endpoint initialized successfully:', this.chatCompletionEndpoint);
             return true;
         } catch (error) {
             console.error('LLM API initialization failed:', error);
@@ -63,23 +94,41 @@ export const DeviceLLM = {
             // Always use the external API endpoint instead of local LLM
             const session = await this.getOrCreateSession(sessionId);
             
-            // Use a mock response for now since the cloud function is not working
-            // This simulates a successful API response while you fix the endpoint
-            console.log('Generating mock response instead of using API endpoint');
+            // Use the class property for the endpoint
+            console.log('Calling API endpoint:', this.chatCompletionEndpoint);
             
-            // Create a mock response based on the prompt
+            // Make the actual API call
+            const response = await fetch(this.chatCompletionEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    prompt: prompt,
+                    sessionId: sessionId || 'session_' + Math.random().toString(36).substr(2, 9)
+                }),
+            });
+            
+            console.log('API response status:', response.status);
+            
+            // Check if the response is OK
+            if (!response.ok) {
+                console.error('API request failed with status:', response.status);
+                throw new Error(`API request failed with status: ${response.status}`);
+            }
+            
+            // Parse the response
+            const data = await response.json();
+            console.log('Parsed API response:', data);
+            
+            // Extract response text
             let responseText = '';
-            if (prompt.toLowerCase().includes('action') && prompt.toLowerCase().includes('item')) {
-                if (prompt.toLowerCase().includes('max')) {
-                    responseText = "Here are Max's current action items:\n\n1. Complete the Pasha voice assistant integration - Due next Monday\n2. Fix speech recognition issues in the Android app - In progress\n3. Implement cloud API fallback for LLM responses - Completed";
-                } else {
-                    responseText = "I can provide action items for team members. Please specify which person you'd like information about.";
-                }
-            } else if (prompt.toLowerCase().includes('time')) {
-                const now = new Date();
-                responseText = `The current time is ${now.toLocaleTimeString()}.`;
+            if (data.response && data.response.text) {
+                responseText = data.response.text;
+            } else if (data.response && data.response.parts && data.response.parts.length > 0) {
+                responseText = data.response.parts[0].text;
             } else {
-                responseText = `I understand you're asking about: "${prompt}". How can I help you with that?`;
+                throw new Error('Invalid response structure from API');
             }
             
             // Update session with the interaction
@@ -96,7 +145,7 @@ export const DeviceLLM = {
             return {
                 text: responseText,
                 cardData: this.extractCardData(prompt, responseText),
-                meetings: []
+                meetings: data.response.meetings || []
             };
         } catch (error) {
             console.error('Error generating response:', error);
