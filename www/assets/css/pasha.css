@@ -191,37 +191,3 @@ body.bg-color {
     font-size: 1.5rem;
     word-wrap: break-word;
 }
-/* New Question Button Styling */
-.new-question-btn {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 10px 16px;
-  margin: 0 5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: bold;
-  display: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.new-question-btn:hover {
-  background-color: #218838;
-}
-
-.new-question-btn.visible {
-  opacity: 1;
-}
-
-/* Ensure buttons are properly aligned */
-.wrap-top {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-EOF < /dev/null

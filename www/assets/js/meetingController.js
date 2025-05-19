@@ -237,13 +237,6 @@ export class MeetingController {
         }
 
         try {
-            // Verify authentication
-            const currentUser = firebase.auth().currentUser;
-            if (!currentUser) {
-                throw new Error('User must be authenticated to start a meeting');
-            }
-            this.userId = currentUser.uid;
-
             // Start UI updates
             this.elements.startCard.classList.add('d-none');
             this.elements.timerCard.classList.remove('d-none');
@@ -257,7 +250,7 @@ export class MeetingController {
             // Create new meeting document
             this.meetingId = await this.createNewMeetingDocument(this.meetingStartTime);
 
-            // Initialize recording helpers with verified user ID
+            // Initialize recording helpers
             this.pashaHelper = new PashaHelper(this.firestore, this.userId, this.meetingId);
             await this.pashaHelper.startRecording();
 

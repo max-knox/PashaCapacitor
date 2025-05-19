@@ -2,8 +2,6 @@
 <html lang="es">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Primary Meta Tags -->
     <title>Pasha - Personal Assistant</title>
@@ -23,27 +21,37 @@
     <link rel="stylesheet" href="assets/css/pasha_new.css">
     <link href="https://fonts.googleapis.com/css2?family=Amaranth:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
     <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js" integrity="sha256-eTyxS0rkjpLEo16uXTS0uVCS4815lc40K2iVpWDvdSY=" crossorigin="anonymous"></script>
+    <script src="assets/js/popper.min.js"></script>  
+    <script src="assets/js/bootstrap.min.js"></script>
 
-    <!-- Import Map - Must come before any module scripts -->
-    <script type="importmap">
-      {
-        "imports": {
-          "@capacitor/core": "./assets/js/capacitor/core.js",
-          "@capacitor/app": "./assets/js/capacitor/app.js",
-          "@capacitor-community/speech-recognition": "./assets/js/capacitor/speech-recognition.js",
-          "@capacitor-community/text-to-speech": "./assets/js/capacitor/customTextToSpeech.js",
-          "@llama-node/llama-cpp": "./assets/js/llm/llama-cpp.js",
-          "@capacitor/filesystem": "./assets/js/capacitor/filesystem.js",
-          "./deviceSpeech.js": "./assets/js/deviceSpeech.js",
-          "./deviceLLM.js": "./assets/js/deviceLLM.js",
-          "./deviceController.js": "./assets/js/deviceController.js",
-          "./agent_controller.js": "./assets/js/agent_controller.js", 
-          "./system_prompt.js": "./assets/js/system_prompt.js",
-          "./llm/llama.min.js": "./assets/js/llm/llama.min.js",
-          "./llm/llama.wasm": "./assets/js/llm/llama.wasm"
-        }
-      }
-    </script>
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-app.js"></script>
+
+<!-- Firebase Auth -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-auth.js"></script>
+
+<!-- Firebase Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-database.js"></script>
+
+<!-- Firebase Functions -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-functions.js"></script>
+
+<!-- Firebase Firestore -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-firestore.js"></script>
+
+<!-- Firebase Storage -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-storage.js"></script>
+
+
+<script src="https://unpkg.com/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
+<!-- <script src="assets/js/sphere_visualization.js"></script> -->
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
 </head>
 <body>
 
@@ -75,21 +83,14 @@
               Audio Player
             </audio>
           </div>
+          <!-- <input type="checkbox" checked data-toggle="toggle" style="margin-left:auto !important;"> -->
         </header>
-        <div class="clear_chat highest_index">
-          <button id="clearChat" class="circle-btn terminal-medium">CLEAR</button>
-        </div>
-        <main class="msger-chat-welcome" id="chat-messages">
-
-        </main>
+        <main class="msger-chat-welcome" id="chat-messages"></main>
       </div>
     </div>
   </div>
   <div class="agent_right dotbg">
-    <div class="pasha_canvas">
-      <!-- Display certain items in this div for example: Date and Time, pashaCalendar, fullReport Accordion -->
-    </div>
-    <div class="agent_screen" style="display:none;">
+    <div class="agent_screen">
       <!-- Voice Action Readout -->
       <div class="agent_controll">
           <div class="voice_status text-center">
@@ -103,6 +104,7 @@
 
       <div class="chronicle_mode">
         <!-- Chronicle mode interface -->
+
       </div>
 
       <div class="agent_s3">
@@ -119,7 +121,6 @@
         <div class="wrap-top">
           <button class="push-talk-btn terminal-medium">PUSH TO TALK</button>
           <button class="pause-btn terminal-medium">PAUSE</button>
-          <button class="new-question-btn terminal-medium" style="display:none;">NEW QUESTION</button>
         </div>
         <div id="main_buttons" class="wrap-bottom">
           <div class="button-container">
@@ -138,110 +139,67 @@
   </div>
 </section>
 
-<script>
-    window._env_ = {
-        apiKey: "10101101010111010100101",
-        authDomain: "example.com",
-        databaseURL: "example.com",
-        projectId: "this_project",
-        storageBucket: "this_bucket",
-        messagingSenderId: "10101101010111010100101",
-        appId: "10101101010111010100101",
-        measurementId: "G-10101101010111010100101"
-    }
-</script>
-
-<!-- Third Party Dependencies -->
-<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
-<script src="assets/js/popper.min.js"></script>  
-<script src="assets/js/bootstrap.min.js"></script>
-<script src="https://unpkg.com/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
-<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<!-- Firebase Dependencies -->
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-functions.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-storage.js"></script>
-
-<!-- Application Scripts -->
-<script src="assets/js/bundle.js"></script>
-<script src="assets/js/animations.js"></script>
-<script src="assets/js/language.js"></script>
-<script src="assets/js/interaction.js"></script>
-<script src="assets/js/pashaHelper.js"></script>
-<script src="assets/js/pashaSecondary.js"></script>
-<script type="module" src="assets/js/meetingController.js"></script>
-
-<!-- Initialize controllers -->
-<script type="module">
-    import { DeviceController } from './assets/js/deviceController.js';
-    import { MeetingController } from './assets/js/meetingController.js';
+    <script>
+        window._env_ = {
+          apiKey: "10101101010111010100101",
+          authDomain: "example.com",
+          databaseURL: "example.com",
+          projectId: "this_project",
+          storageBucket: "this_bucket",
+          messagingSenderId: "10101101010111010100101",
+          appId: "10101101010111010100101",
+          measurementId: "G-10101101010111010100101"
+        }
+    </script>
+    <script src="assets/js/bundle.js"></script>
+    <script src="assets/js/animations.js"></script>
+    <script src="assets/js/language.js"></script>
+    <script src="assets/js/interaction.js"></script>
     
-    document.addEventListener('DOMContentLoaded', () => {
-        const botLoad = document.querySelector('.bot_load');
-        const startChatButton = document.getElementById('startChatButton');
-        const clearChatButton = document.getElementById('clearChat');
+    <!-- Meeting-related scripts -->
+    <script src="assets/js/pashaHelper.js"></script>
+    <script src="assets/js/pashaSecondary.js"></script>
+    <script type="module" src="assets/js/meetingController.js"></script>
+    
+    <!-- Initialize controllers -->
+    <script type="module">
+        import { PushController } from './assets/js/push_controller.js';
+        import { MeetingController } from './assets/js/meetingController.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const botLoad = document.querySelector('.bot_load');
+            const startChatButton = document.getElementById('startChatButton');
 
-        // Add clear chat functionality
-        clearChatButton?.addEventListener('click', () => {
-            const chatMessages = document.getElementById('chat-messages');
-            if (chatMessages) {
-                while (chatMessages.firstChild) {
-                    chatMessages.removeChild(chatMessages.firstChild);
-                }
-                // Add initial message back
-                const initialMessage = document.createElement('div');
-                initialMessage.classList.add('msg', 'left-msg');
-                initialMessage.innerHTML = `
-                    <div class="msg-img" style="background-image: url('assets/img/ux_icons/bot_icon.png')"></div>
-                    <div class="msg-bubble">
-                        <div class="msg-info">
-                            <div class="msg-info-name">Pasha</div>
-                        </div>
-                        <div class="msg-text">
-                            Pasha is ready. Push and hold the button to talk!
-                        </div>
-                    </div>
-                `;
-                chatMessages.appendChild(initialMessage);
+            // Check if microphone was previously enabled
+            if (localStorage.getItem('microphoneEnabled') === 'true') {
+                botLoad.style.display = 'none';
+                initializeControllers();
+            } else {
+                startChatButton.addEventListener('click', async () => {
+                    try {
+                        await navigator.mediaDevices.getUserMedia({ audio: true });
+                        localStorage.setItem('microphoneEnabled', 'true');
+                        botLoad.style.display = 'none';
+                        initializeControllers();
+                    } catch (error) {
+                        console.error('Error accessing microphone:', error);
+                        alert('Microphone access is required for this application.');
+                    }
+                });
+            }
+
+            function initializeControllers() {
+                // Initialize Firebase
+                const db = firebase.firestore();
+                
+                // Initialize controllers
+                const meetingController = new MeetingController(db);
+                const pushController = new PushController();
+                
+                meetingController.init();
+                pushController.init();
             }
         });
-
-        // Check if microphone was previously enabled
-        if (localStorage.getItem('microphoneEnabled') === 'true') {
-            botLoad.style.display = 'none';
-            initializeControllers();
-        } else {
-            startChatButton.addEventListener('click', async () => {
-                try {
-                    await navigator.mediaDevices.getUserMedia({ audio: true });
-                    localStorage.setItem('microphoneEnabled', 'true');
-                    botLoad.style.display = 'none';
-                    initializeControllers();
-                } catch (error) {
-                    console.error('Error accessing microphone:', error);
-                    alert('Microphone access is required for this application.');
-                }
-            });
-        }
-
-        function initializeControllers() {
-            const db = firebase.firestore();
-            
-            // Initialize controllers
-            const meetingController = new MeetingController(db);
-            const deviceController = new DeviceController();
-            
-            meetingController.init();
-            deviceController.init();
-        }
-    });
-</script>
+    </script>
 </body>
-</html></html>
+</html>

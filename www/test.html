@@ -1,0 +1,113 @@
+<div class="list-group">
+    <a href="#" class="list-group-item list-group-item-action active" aria-current="true">
+      <div class="d-flex w-100 justify-content-between">
+        <h5 class="mb-1 d-inline-block">
+            <input class="form-check-input me-2" type="checkbox" value="" aria-label="..."> 
+            <strong>Who:</strong> ${item.who || 'N/A'}
+        </h5>
+        <small>Action Item ${index + 1}</small>
+      </div>
+      <p class="mb-1"><strong>What:</strong> ${item.what || 'N/A'}</p>
+      <p class="mb-1"><strong>When:</strong> ${item.when || 'N/A'}</p>
+      <small><strong>Status:</strong> ${item.status || 'N/A'}</small>
+    </a>
+</div>
+
+
+<div class="modal-body">
+    <div class="card">
+        <div class="card-body">
+            <div class="card">
+                <div class="card-body">
+                <h5 class="card-title" id="meetingDetailsTitle"></h5>
+                  <h6 class="card-subtitle mb-2 text-muted"><strong>Duration:</strong> <span id="meetingDetailsDuration"></span></h6>
+                  <p class="card-text"><strong>Start Time:</strong> <span id="meetingDetailsStartTime"></span> <br>
+                  <strong>End Time:</strong> <span id="meetingDetailsEndTime"></span></p>
+                  <button type="button" class="btn btn-outline-secondary">Start Followup Meeting</button>
+                </div>
+              </div>
+
+            <hr class="mb-2 mt-2"/>
+
+              <div class="accordion accordion-flush" id="accordionFlushExample">
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="flush-headingOne">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                      Accordion Items
+                    </button>
+                  </h2>
+                  <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+                    <div class="accordion-body">
+                        <div id="actionItems" class="list-group"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="flush-headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                      Summary
+                    </button>
+                  </h2>
+                  <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionFlushExample">
+                    <div class="accordion-body">
+                        <p id="meetingSummary"></p>
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="flush-headingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                      Transcript
+                    </button>
+                  </h2>
+                  <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#accordionFlushExample">
+                    <div class="accordion-body">
+                        <p id="meetingTranscript"></p>
+                    </div>
+                </div>
+                </div>
+              </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="accordion" id="meetingAccordion">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="actionItems">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Action Items
+        </button>
+      </h2>
+      <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="actionItems" data-bs-parent="#meetingAccordion">
+        <div class="accordion-body">
+            <div id="actionItems" class="list-group"></div>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="meetingSummary">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          Summary
+        </button>
+      </h2>
+      <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="meetingSummary" data-bs-parent="#meetingAccordion">
+        <div class="accordion-body">
+            <p id="meetingSummary"></p>
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="meetingTranscript">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+          Transcript
+        </button>
+      </h2>
+      <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="meetingTranscript" data-bs-parent="#meetingAccordion">
+        <div class="accordion-body">
+            <p id="meetingTranscript"></p>
+        </div>
+      </div>
+    </div>
+  </div>

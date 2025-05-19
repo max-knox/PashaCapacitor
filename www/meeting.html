@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PASHA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amaranth:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/pasha.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .back-button .btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .back-button .fas {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-button">
+        <a href="index.html" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i>
+            Back to Assistant
+        </a>
+    </div>
+<!-- Modal -->
+<!-- Meeting History Modal -->
+<div class="modal fade onTop modalHistory" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historyModalLabel">Meeting History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Dynamic History list -->
+                <div class="list-group" id="historyList">
+                    <!-- Dynamic Content will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Individual Meeting Modal -->
+<div class="modal fade" id="meetingDetailsModal" tabindex="-1" aria-labelledby="meetingDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="meetingDetailsModalLabel"></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <div class="card">
+                  <div class="card-body">
+                      <div class="card">
+                          <div class="card-body">
+                              <h5 class="card-title" id="meetingDetailsTitle"></h5>
+                              <p class="card-text">
+                                  <strong>Host:</strong> <span id="meetingDetailsHost"></span>
+                              </p>
+                              <p class="card-text">
+                                  <strong>Attendees:</strong> <span id="meetingDetailsAttendees"></span>
+                              </p>
+                              <h6 class="card-subtitle mb-2 text-muted">
+                                <span id="meetingDetailsDuration"></span>
+                              </h6>
+                              <p class="card-text">
+                                <span id="meetingDetailsStartTime"></span> <br>
+                                <span id="meetingDetailsEndTime"></span>
+                              </p>
+                              <button type="button" class="btn btn-outline-secondary">Start Followup Meeting</button>
+                              <button id="secondaryTrans" type="button" class="btn btn-outline-secondary">Process Secondary Transcript</button>
+                          </div>
+                      </div>
+
+                      <div class="accordion accordion-flush" id="accordionFlushExample">
+                          <div class="accordion-item">
+                              <h2 class="accordion-header" id="flush-headingOne">
+                                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                                      Action Items
+                                  </button>
+                              </h2>
+                              <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+                                  <div class="accordion-body">
+                                      <div id="actionItems" class="list-group"></div>
+                                  </div>
+                              </div>
+                          </div>
+                          <div class="accordion-item">
+                              <h2 class="accordion-header" id="flush-headingTwo">
+                                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                                      Summary
+                                  </button>
+                              </h2>
+                              <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionFlushExample">
+                                  <div class="accordion-body">
+                                      <p id="meetingSummary"></p>
+                                  </div>
+                              </div>
+                          </div>
+                          <div class="accordion-item">
+                              <h2 class="accordion-header" id="flush-headingThree">
+                                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                                      Transcript
+                                  </button>
+                              </h2>
+                              <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#accordionFlushExample">
+                                  <div class="accordion-body">
+                                      <p id="meetingTranscript"></p>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+<!-- END Modals -->
+
+    <div class="container">
+        <!-- Start Meeting Card -->
+        <div id="startCard" class="text-center">
+          <div class="startWrap text-center" data-bs-toggle="modal" data-bs-target="#historyModal">
+            <canvas class="sphere-canvas" width="240" height="240"></canvas>
+            <small class="maindate" id="currentDate"></small>
+          </div>
+            <input type="text" id="meetingTitle" class="form-control mb-2 mt-4" placeholder="Enter meeting title">
+            <input type="text" id="meetingHost" class="form-control mb-2" placeholder="Meeting Host">
+            <input type="text" id="meetingAttendees" class="form-control mb-4" placeholder="Attendees">
+            <button id="startMeetingButton" class="btn btn-welcome signIn">Start Meeting</button>
+        </div>
+
+        <!-- Timer Card -->
+        <div id="timerCard" class="text-center d-none">
+          <canvas class="sphere-canvas" width="240" height="240"></canvas>
+            <hr/>
+            <p class="maindate" id="currentDateTimer"></p>
+            <h1 class="meeting-title mb-3" id="displayedMeetingTitle"></h1>
+            <div class="timer mb-4">
+                <span id="hours">00</span>:<span id="minutes">00</span><span class="seconds">:<span id="seconds">00</span></span>
+            </div>
+            <button id="endMeetingButton" class="btn btn-welcome signIn">End Meeting</button>
+        </div> 
+
+        <!-- Meeting Summary Card -->
+        <div id="summaryCard" class="text-center d-none">
+          <canvas class="sphere-canvas" width="240" height="240"></canvas>
+            <hr/>
+            <h2 class="meeting-title mb-5 mt-4" id="summaryMeetingTitle"></h2>
+            <p class="date mb-2" id="summaryDate"></p>
+            <p class="mb-2" id="summaryStartTime"></p>
+            <p class="mb-2" id="summaryEndTime"></p>
+            <p class="mb-4" id="summaryDuration"></p>
+            <button id="showStartCardButton" class="btn btn-welcome signIn">Close</button>
+        </div>
+    </div>
+
+      <script>
+        function openTalkPage() { // Define the function globally
+          window.location.href = 'talk.html'; 
+        }
+      </script>
+    <!-- Load Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-functions.js"></script>
+
+    <!-- Load jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Load Bootstrap JavaScript -->
+    <script src="assets/js/bootstrap.min.js" defer></script>
+
+    <!-- Hammer JS Scripts -->
+    <script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="assets/js/sphere_visualization.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="assets/js/bundle.js"></script>
+    <script src="assets/js/pasha.js"></script>
+    <script src="assets/js/pashaHelper.js"></script>
+    <script src="assets/js/pashaSecondary.js"></script>
+    <script src="assets/js/meetingHistory.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // Sphere visualization code
+        const canvasElements = document.querySelectorAll('.sphere-canvas');
+        const sphereVisualizations = [];
+        
+        canvasElements.forEach((canvasElement) => {
+          const sphereVis = new SphereVisualization(canvasElement);
+          sphereVis.init();
+          sphereVisualizations.push(sphereVis);
+        });
+      });
+    </script>
+</body>
+</html>

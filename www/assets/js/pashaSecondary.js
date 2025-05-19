@@ -52,28 +52,11 @@
             }
         }
 
-        async stopSecondaryRecording() {
+        stopSecondaryRecording() {
             if (this.secondaryRecorder && this.isRecording) {
                 this.isRecording = false;
                 clearInterval(this.uploadInterval);
-                
-                // Create a promise that resolves when the recording stops
-                await new Promise((resolve) => {
-                    this.secondaryRecorder.addEventListener('stop', async () => {
-                        try {
-                            // Create blob from chunks before uploading
-                            const audioBlob = new Blob(this.secondaryChunks, { type: 'audio/webm' });
-                            await this.uploadFullAudio(audioBlob);
-                            resolve();
-                        } catch (error) {
-                            console.error('Error in stop recording handler:', error);
-                            resolve(); // Resolve anyway to prevent hanging
-                        }
-                    }, { once: true });
-                    
-                    this.secondaryRecorder.stop();
-                });
-                
+                this.secondaryRecorder.stop();
                 console.log('Secondary recording stopped');
             }
         }
@@ -110,92 +93,32 @@
             }
         }
 
-        async uploadFullAudio(audioBlob) {
+        async uploadFullAudio() {
             try {
-                // Verify user and meeting IDs
-                if (!this.userId || !this.meetingId) {
-                    throw new Error('Missing userId or meetingId');
-                }
-
-                // Verify blob
-                if (!(audioBlob instanceof Blob)) {
-                    throw new Error('Invalid audio data provided');
-                }
-
-                // Create a more specific file path
-                const timestamp = new Date().toISOString();
-                const filePath = `meetings/${this.userId}/${this.meetingId}/full_audio_${timestamp}.webm`;
+                // Upload audio file
+                const blob = new Blob(this.secondaryChunks, { type: 'audio/webm' });
+                const file = new File([blob], `meeting_${this.meetingId}_full.webm`, { type: 'audio/webm' });
                 
-                // Get storage reference
+                console.log('Starting full audio upload:', file.name, 'Size:', file.size, 'bytes');
+                
+                // Upload to Firebase Storage
                 const storageRef = firebase.storage().ref();
-                const fileRef = storageRef.child(filePath);
-
-                // Set metadata
-                const metadata = {
-                    contentType: 'audio/webm',
-                    customMetadata: {
-                        userId: this.userId,
-                        meetingId: this.meetingId,
-                        timestamp: timestamp
-                    }
-                };
-
-                // Create upload task
-                const uploadTask = fileRef.put(audioBlob, metadata);
+                const fileRef = storageRef.child(`meetings/${this.meetingId}/${file.name}`);
+                const snapshot = await fileRef.put(file);
+                console.log('Uploaded full audio file:', file.name);
                 
-                // Monitor upload progress
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        console.log('Upload progress:', progress);
-                    },
-                    (error) => {
-                        console.error('Upload error:', error);
-                        throw error;
-                    }
-                );
-
-                // Wait for upload to complete
-                const snapshot = await uploadTask;
-                
-                // Get download URL
                 const downloadURL = await snapshot.ref.getDownloadURL();
+                console.log('Full Audio Download URL:', downloadURL);
+                
+                // Update Firestore
+                await this.updateMeetingStatus('processing', null, downloadURL);
 
-                // Update meeting document with audio URL
-                await this.firestore.collection('meetings')
-                    .doc(this.meetingId)
-                    .update({
-                        fullAudioUrl: downloadURL,
-                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                console.log('Full audio upload complete:', downloadURL);
-                return downloadURL;
-
+                // Try processing with retries
+                await this.processSecondaryAudioWithRetries(downloadURL);
+                
             } catch (error) {
                 console.error('Error in uploadFullAudio:', error);
-                
-                // Send error to analytics
-                if (typeof gtag !== 'undefined') {
-                    gtag('event', 'upload_error', {
-                        'event_category': 'meeting',
-                        'event_label': error.message
-                    });
-                }
-
-                // Update meeting document with error status
-                try {
-                    await this.firestore.collection('meetings')
-                        .doc(this.meetingId)
-                        .update({
-                            uploadError: error.message,
-                            lastError: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                } catch (dbError) {
-                    console.error('Error updating meeting document:', dbError);
-                }
-
-                throw error;
+                await this.updateMeetingStatus('error', 'Upload or processing failed: ' + error.message);
             }
         }
 
