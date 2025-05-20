@@ -85,7 +85,11 @@
           </div>
           <!-- <input type="checkbox" checked data-toggle="toggle" style="margin-left:auto !important;"> -->
         </header>
-        <main class="msger-chat-welcome" id="chat-messages"></main>
+        <main class="msger-chat-welcome" id="chat-messages">
+          <button id="clear-chat-btn" class="clear-chat-button" title="Clear Chat" aria-label="Clear chat messages">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </main>
       </div>
     </div>
   </div>
@@ -198,6 +202,32 @@
                 
                 meetingController.init();
                 pushController.init();
+                
+                // Initialize clear chat functionality
+                initializeClearChat();
+            }
+            
+            function initializeClearChat() {
+                const clearChatBtn = document.getElementById('clear-chat-btn');
+                const chatMessages = document.getElementById('chat-messages');
+                
+                if (clearChatBtn && chatMessages) {
+                    clearChatBtn.addEventListener('click', function() {
+                        // Confirm before clearing
+                        if (confirm('Are you sure you want to clear all chat messages?')) {
+                            // Clear all child elements except the clear button itself
+                            const elements = chatMessages.children;
+                            for (let i = elements.length - 1; i >= 0; i--) {
+                                if (elements[i].id !== 'clear-chat-btn') {
+                                    chatMessages.removeChild(elements[i]);
+                                }
+                            }
+                            
+                            // Optional: Trigger any cleanup needed by controllers
+                            console.log('Chat cleared successfully');
+                        }
+                    });
+                }
             }
         });
     </script>
