@@ -19,6 +19,8 @@
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css" media="all">
     <link rel="stylesheet" href="assets/css/pasha_beta.css">
     <link rel="stylesheet" href="assets/css/pasha_new.css">
+    <link rel="stylesheet" href="assets/css/settings-modal.css">
+    <link rel="stylesheet" href="assets/css/theme.css">
     <link href="https://fonts.googleapis.com/css2?family=Amaranth:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
     <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
     
@@ -142,6 +144,81 @@
     </div>
   </div>
 </section>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="settings-modal">
+  <div class="settings-modal-header">
+    <h2 class="settings-modal-title">Settings</h2>
+    <button id="closeSettingsBtn" class="settings-modal-close">&times;</button>
+  </div>
+  
+  <div class="settings-modal-body">
+    <!-- Left Column -->
+    <div class="settings-column">
+      <div class="settings-section">
+        <h3>Voice Settings</h3>
+        <div class="settings-item">
+          <label for="voiceSelect">Voice:</label>
+          <select id="voiceSelect">
+            <option value="default">Default</option>
+            <option value="voice1">Voice 1</option>
+            <option value="voice2">Voice 2</option>
+          </select>
+        </div>
+        <div class="settings-item">
+          <label for="voiceSpeed">Voice Speed:</label>
+          <select id="voiceSpeed">
+            <option value="0.8">Slow</option>
+            <option value="1.0" selected>Normal</option>
+            <option value="1.2">Fast</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="settings-section">
+        <h3>Language Settings</h3>
+        <div class="settings-item">
+          <label for="language">Language:</label>
+          <select id="language">
+            <option value="en-US" selected>English (US)</option>
+            <option value="es-ES">Spanish</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div class="settings-column">
+      <div class="settings-section">
+        <h3>Interface Settings</h3>
+        <div class="settings-item">
+          <label for="theme">Theme:</label>
+          <select id="theme">
+            <option value="light" selected>Light</option>
+            <option value="dark">Dark</option>
+            <option value="auto">Auto (System)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="settings-section">
+        <h3>Notification Settings</h3>
+        <div class="settings-item">
+          <label for="notificationSound">Notification Sound:</label>
+          <select id="notificationSound">
+            <option value="default" selected>Default</option>
+            <option value="silent">Silent</option>
+            <option value="subtle">Subtle</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="settings-footer">
+    <button id="saveSettingsBtn" class="btn-save-settings">Save Settings</button>
+  </div>
+</div>
 
     <script>
         window._env_ = {

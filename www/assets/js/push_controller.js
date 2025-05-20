@@ -1057,21 +1057,153 @@ setupEventListeners() {
       }
       
       openSettings() {
-        const settingsContent = `
-          <div class="settings-panel">
-            <h3>Settings</h3>
-            <div class="setting-item">
-              <label>Voice: </label>
-              <select id="voiceSelect">
-                <option value="default">Default</option>
-                <option value="voice1">Voice 1</option>
-                <option value="voice2">Voice 2</option>
-              </select>
-            </div>
-            <!-- Add more settings as needed -->
-          </div>
-        `;
-        this.appendMessage('bot', settingsContent);
+        // Show the settings modal
+        const settingsModal = document.getElementById('settingsModal');
+        if (settingsModal) {
+          settingsModal.classList.add('active');
+          
+          // Focus the close button for accessibility
+          const closeButton = document.getElementById('closeSettingsBtn');
+          if (closeButton) {
+            setTimeout(() => closeButton.focus(), 100);
+          }
+          
+          // Set up close and save button event listeners if not already set
+          if (!this.settingsEventsInitialized) {
+            const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+            
+            if (closeSettingsBtn) {
+              closeSettingsBtn.addEventListener('click', () => {
+                settingsModal.classList.add('fadeOut');
+                setTimeout(() => {
+                  settingsModal.classList.remove('active');
+                  settingsModal.classList.remove('fadeOut');
+                }, 300);
+              });
+            }
+            
+            if (saveSettingsBtn) {
+              saveSettingsBtn.addEventListener('click', () => {
+                // Save settings functionality 
+                const voiceSelect = document.getElementById('voiceSelect');
+                const voiceSpeed = document.getElementById('voiceSpeed');
+                const language = document.getElementById('language');
+                const theme = document.getElementById('theme');
+                const notificationSound = document.getElementById('notificationSound');
+                
+                // Save to localStorage or your preferred storage
+                if (voiceSelect) localStorage.setItem('voiceType', voiceSelect.value);
+                if (voiceSpeed) localStorage.setItem('voiceSpeed', voiceSpeed.value);
+                if (language) localStorage.setItem('language', language.value);
+                if (theme) localStorage.setItem('theme', theme.value);
+                if (notificationSound) localStorage.setItem('notificationSound', notificationSound.value);
+                
+                // Apply settings immediately if needed
+                this.applySettings();
+                
+                // Close the modal with animation
+                settingsModal.classList.add('fadeOut');
+                setTimeout(() => {
+                  settingsModal.classList.remove('active');
+                  settingsModal.classList.remove('fadeOut');
+                  
+                  // Show success message after modal is closed
+                  setTimeout(() => {
+                    this.appendMessage('bot', 'Settings saved successfully.');
+                  }, 100);
+                }, 300);
+              });
+            }
+            
+            // Add click handler to close modal when clicking outside
+            settingsModal.addEventListener('click', (e) => {
+              if (e.target === settingsModal) {
+                settingsModal.classList.add('fadeOut');
+                setTimeout(() => {
+                  settingsModal.classList.remove('active');
+                  settingsModal.classList.remove('fadeOut');
+                }, 300);
+              }
+            });
+            
+            // Add keyboard support to close modal with Escape key
+            document.addEventListener('keydown', (e) => {
+              if (e.key === 'Escape' && settingsModal.classList.contains('active')) {
+                settingsModal.classList.add('fadeOut');
+                setTimeout(() => {
+                  settingsModal.classList.remove('active');
+                  settingsModal.classList.remove('fadeOut');
+                }, 300);
+              }
+            });
+            
+            // Load existing settings
+            this.loadSavedSettings();
+            
+            this.settingsEventsInitialized = true;
+          }
+        } else {
+          // Fallback if modal not found
+          this.appendMessage('bot', 'Settings panel could not be loaded.');
+        }
+      }
+      
+      loadSavedSettings() {
+        // Load saved settings from storage
+        const voiceSelect = document.getElementById('voiceSelect');
+        const voiceSpeed = document.getElementById('voiceSpeed');
+        const language = document.getElementById('language');
+        const theme = document.getElementById('theme');
+        const notificationSound = document.getElementById('notificationSound');
+        
+        if (voiceSelect) voiceSelect.value = localStorage.getItem('voiceType') || 'default';
+        if (voiceSpeed) voiceSpeed.value = localStorage.getItem('voiceSpeed') || '1.0';
+        if (language) language.value = localStorage.getItem('language') || 'en-US';
+        if (theme) theme.value = localStorage.getItem('theme') || 'light';
+        if (notificationSound) notificationSound.value = localStorage.getItem('notificationSound') || 'default';
+        
+        // Apply settings on load
+        this.applySettings();
+      }
+      
+      applySettings() {
+        // Apply the current settings
+        const theme = localStorage.getItem('theme') || 'light';
+        
+        // Apply theme
+        if (theme === 'dark') {
+          document.body.classList.add('dark-theme');
+        } else if (theme === 'light') {
+          document.body.classList.remove('dark-theme');
+        } else if (theme === 'auto') {
+          // Check system preference
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.body.classList.add('dark-theme');
+          } else {
+            document.body.classList.remove('dark-theme');
+          }
+          
+          // Listen for changes in system preference
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (e.matches) {
+              document.body.classList.add('dark-theme');
+            } else {
+              document.body.classList.remove('dark-theme');
+            }
+          });
+        }
+        
+        // Apply other settings as needed
+        const voiceSpeed = localStorage.getItem('voiceSpeed') || '1.0';
+        if (this.speech && this.speech.rate) {
+          this.speech.rate = parseFloat(voiceSpeed);
+        }
+        
+        const language = localStorage.getItem('language') || 'en-US';
+        if (this.speech && this.speech.lang) {
+          this.speech.lang = language;
+        }
       }
       
       displayHistory() {
