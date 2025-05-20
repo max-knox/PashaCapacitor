@@ -998,7 +998,21 @@ setupEventListeners() {
           case 'scheduler':
             message = "Scheduler activated.";
             action = () => {
-              this.appendMessage('bot', 'You can say things like:\n- Schedule a meeting\n- Set a reminder\n- Add to calendar');
+              // Open the scheduler modal using the controller if available
+              if (window.schedulerController && typeof window.schedulerController.openScheduler === 'function') {
+                window.schedulerController.openScheduler();
+              } else {
+                const schedulerModal = document.getElementById('schedulerModal');
+                if (schedulerModal) {
+                  schedulerModal.classList.add('active');
+                  // Initialize the scheduler controller if available
+                  if (window.schedulerController && typeof window.schedulerController.init === 'function') {
+                    window.schedulerController.init();
+                  }
+                } else {
+                  this.appendMessage('bot', 'You can say things like:\n- Schedule a meeting\n- Set a reminder\n- Add to calendar');
+                }
+              }
             };
             break;
             
