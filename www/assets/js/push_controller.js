@@ -8,8 +8,12 @@ export class PushController {
           isListening: false,
           isAgentSpeaking: false,
           isProcessing: false,
-          currentEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/agent_completions', // Changed default
-          fallbackEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/agent_completions'
+          currentEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/agent_completions', // Primary endpoint
+          fallbackEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/chatCompletions', // Backup endpoint
+          localFallbackEnabled: true, // Enable local fallback when both endpoints fail
+          networkStatus: 'online', // Track network status
+          lastSuccessfulEndpoint: null, // Track which endpoint worked last
+          offlineMode: false // Whether we're operating in offline mode
         };
     
         this.elements = {
@@ -98,6 +102,9 @@ export class PushController {
     
             // Initialize audio context
             this.initAudioContext();
+            
+            // Setup network status monitoring
+            this.setupNetworkMonitoring();
     
             // Setup mode buttons
             this.setupModeButtons();
@@ -678,13 +685,22 @@ setupEventListeners() {
     
           const response = await this.getChatCompletion(input);
           console.log('Bot response:', response);
-    
-          if (response.meetings && response.meetings.length > 0) {
-            const cardContent = this.createActionItemsCard(response.meetings);
-            this.appendMessage('bot', cardContent);
+          
+          // Check if this is an offline/fallback response
+          if (response.offline) {
+            this.appendMessage('bot', response.text);
+            this.appendMessage('system', 
+              'Note: I\'m currently operating in offline mode due to connectivity issues. ' +
+              'Some features may be limited until connection is restored.');
+          } else {
+            // Handle normal response with potential special content
+            if (response.meetings && response.meetings.length > 0) {
+              const cardContent = this.createActionItemsCard(response.meetings);
+              this.appendMessage('bot', cardContent);
+            }
+      
+            this.appendMessage('bot', response.text);
           }
-    
-          this.appendMessage('bot', response.text);
     
           await new Promise(resolve => setTimeout(resolve, this.config.responseDelay));
     
@@ -692,7 +708,21 @@ setupEventListeners() {
           await this.playAudioResponse(cleanedResponse);
         } catch (error) {
           console.error('Error processing user input:', error);
-          this.appendMessage('bot', 'Sorry, I encountered an error. Please try again.');
+          
+          // Provide more helpful error messages based on error type
+          if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+            this.appendMessage('bot', 
+              'Sorry, I\'m having trouble connecting to my language processing service. ' +
+              'This might be due to network issues or the service being temporarily unavailable. ' +
+              'I\'ll continue to operate with limited capabilities.');
+          } else if (error.name === 'AbortError') {
+            this.appendMessage('bot', 
+              'Sorry, the request timed out. This might be due to network issues or high server load. ' +
+              'Please try again in a moment.');
+          } else {
+            this.appendMessage('bot', 'Sorry, I encountered an error processing your request. Please try again.');
+          }
+          
           this.updateVoiceStatus('Ready');
         } finally {
           if (this.elements.loader) {
@@ -718,7 +748,14 @@ setupEventListeners() {
                 const delay = this.config.minTimeBetweenRequests - timeSinceLastRequest;
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
+            
+            // Check if we already exhausted all retries and endpoints
+            if (retries === 0 && this.state.currentEndpoint === this.state.fallbackEndpoint && this.state.localFallbackEnabled) {
+                console.log('All endpoints failed, using local fallback...');
+                return this.getLocalFallbackResponse(prompt);
+            }
     
+            console.log(`Trying endpoint: ${this.state.currentEndpoint}`);
             const response = await fetch(this.state.currentEndpoint, {
                 method: 'POST',
                 headers: {
@@ -728,6 +765,8 @@ setupEventListeners() {
                     prompt: prompt,
                     sessionId: this.sessionId
                 }),
+                // Add timeout to prevent hanging requests
+                signal: AbortSignal.timeout(10000)
             });
     
             this.conversation.lastRequestTime = Date.now();
@@ -742,34 +781,47 @@ setupEventListeners() {
                     return this.getChatCompletion(prompt, retries);
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
-            }
-    
-            const data = await response.json();
+            }            const data = await response.json();
             
             if (!data.response || (!data.response.text && !data.response.parts)) {
                 throw new Error('Invalid response structure from server');
             }
-    
+
             this.conversation.history.push(
                 { role: "user", content: prompt },
                 { role: "assistant", content: data.response.text || data.response.parts[0].text }
             );
-    
+
             return data.response;
         } catch (error) {
             console.error('Error getting chat completion:', error);
+            
+            // Check if it's a network-related error
+            const isNetworkError = error.name === 'TypeError' && error.message === 'Failed to fetch';
+            
             if (retries > 0) {
                 // If we're not already on fallback, switch to it
                 if (this.state.currentEndpoint !== this.state.fallbackEndpoint) {
+                    console.log('Switching to fallback endpoint...');
                     this.handleEndpointError(
                         this.state.currentEndpoint.split('completions_')[1] || 'Unknown'
                     );
                     return this.getChatCompletion(prompt, retries - 1);
                 }
-                // If we are on fallback, just retry
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // If we are on fallback, wait and retry
+                console.log(`Retrying... ${retries} attempts left`);
+                const backoffDelay = Math.min(2000 * (3 - retries), 5000); // Exponential backoff
+                await new Promise(resolve => setTimeout(resolve, backoffDelay));
                 return this.getChatCompletion(prompt, retries - 1);
             }
+            
+            // If all retries are exhausted, use local fallback as last resort
+            if (this.state.localFallbackEnabled && isNetworkError) {
+                console.log('All endpoints failed. Using local fallback response');
+                return this.getLocalFallbackResponse(prompt);
+            }
+            
             throw error;
         }
     }
@@ -787,43 +839,54 @@ setupEventListeners() {
       async playAudioResponse(text) {
         this.state.isAgentSpeaking = true;
         this.updateVoiceStatus('Speaking');
-        this.updateButtonStates('audio_playing'); // Add this line to show pause button immediately
-    
+        this.updateButtonStates('audio_playing');
+
         try {
             console.log('Processing text for speech:', text);
             const chunks = this.splitTextIntoChunks(text, 1800);
-    
+
             for (let chunk of chunks) {
                 if (!this.state.isAgentSpeaking) {
                     console.log('Speech interrupted');
                     break;
                 }
-    
-                const response = await fetch('https://us-central1-pa-sha.cloudfunctions.net/textToSpeech', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ data: { text: chunk } }),
-                });
-    
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+
+                let response;
+                try {
+                    response = await fetch('https://us-central1-pa-sha.cloudfunctions.net/textToSpeech', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ data: { text: chunk } }),
+                    });
+                } catch (networkError) {
+                    // Network error (offline, DNS, etc)
+                    console.error('Network error in playAudioResponse:', networkError);
+                    this.appendMessage('system', 'Network error: Unable to reach the text-to-speech service. Please check your connection.');
+                    break;
                 }
-    
+
+                if (!response || !response.ok) {
+                    // HTTP error or no response
+                    const status = response ? response.status : 'No response';
+                    console.error(`TTS endpoint error! status: ${status}`);
+                    this.appendMessage('system', `Sorry, I couldn't generate speech audio (TTS service error: ${status}).`);
+                    break;
+                }
+
                 const audioBlob = await response.blob();
                 const audioUrl = URL.createObjectURL(audioBlob);
                 const audio = new Audio(audioUrl);
                 this.elements.audioPlayer = audio;
-    
-                // Set up event listeners before playing
+
                 audio.addEventListener('play', () => this.handleAudioPlay());
                 audio.addEventListener('pause', () => this.handleAudioPause());
                 audio.addEventListener('ended', () => {
                     URL.revokeObjectURL(audioUrl);
                     this.handleAudioEnded();
                 });
-    
+
                 await new Promise((resolve) => {
                     audio.addEventListener('ended', resolve);
                     audio.play().catch(error => {
@@ -1519,6 +1582,152 @@ setupEventListeners() {
         this.appendMessage('bot', 
             `Sorry, the ${modelName} endpoint is not responding. I've switched back to the default model to keep our conversation going.`
         );
+    }
+    
+    /**
+     * Provides a local fallback response when all API endpoints fail
+     * This ensures the app remains functional even when cloud services are unavailable
+     */
+    async getLocalFallbackResponse(prompt) {
+        console.log('Using local fallback response mechanism');
+        
+        // Basic responses for common queries
+        const responses = {
+            greeting: "Hello! I'm operating in offline mode due to connectivity issues. I can help with basic information, but my capabilities are limited until the connection is restored.",
+            help: "I can provide basic assistance while offline. For more advanced features, please check your internet connection.",
+            weather: "I'm unable to check the weather while offline. Please try again when internet connectivity is restored.",
+            time: `The current time is ${new Date().toLocaleTimeString()}.`,
+            date: `Today's date is ${new Date().toLocaleDateString()}.`,
+            schedule: "I can't access your schedule while offline. Basic calendar functionality should still work locally.",
+            default: "I'm currently operating in offline mode due to connectivity issues with my language processing service. I can still help with basic tasks, but my capabilities are limited. Please check your internet connection."
+        };
+        
+        // Simple pattern matching for common queries
+        let responseText = responses.default;
+        const lowerPrompt = prompt.toLowerCase();
+        
+        if (/^(hi|hello|hey|greetings)/i.test(lowerPrompt)) {
+            responseText = responses.greeting;
+        } else if (/help|assist|support/i.test(lowerPrompt)) {
+            responseText = responses.help;
+        } else if (/weather|forecast|temperature|rain|snow/i.test(lowerPrompt)) {
+            responseText = responses.weather;
+        } else if (/what time|current time|tell me the time/i.test(lowerPrompt)) {
+            responseText = responses.time;
+        } else if (/what (is |)date|today('s|s|) date|current date/i.test(lowerPrompt)) {
+            responseText = responses.date;
+        } else if (/schedule|calendar|event|meeting|appointment/i.test(lowerPrompt)) {
+            responseText = responses.schedule;
+        }
+        
+        // Record in conversation history
+        this.conversation.history.push(
+            { role: "user", content: prompt },
+            { role: "assistant", content: responseText }
+        );
+        
+        // Return in the expected format
+        return {
+            text: responseText,
+            offline: true
+        };
+    }
+
+    handleEndpointError(modelName) {
+        // Revert to fallback endpoint
+        this.state.currentEndpoint = this.state.fallbackEndpoint;
+        
+        // Update UI to show fallback status
+        const readoutElement = document.querySelector('.llm_readout_title');
+        if (readoutElement) {
+            readoutElement.textContent = `Language Model: Llama (Fallback)`;
+        }
+
+        // Highlight the Llama card
+        document.querySelectorAll('.llm-card').forEach(card => {
+            card.classList.remove('llm-card-active');
+        });
+        const llamaCard = document.querySelector('.llm-card.llama');
+        if (llamaCard) llamaCard.classList.add('llm-card-active');
+
+        // Notify user
+        this.appendMessage('bot', 
+            `Sorry, the ${modelName} endpoint is not responding. I've switched back to the default model to keep our conversation going.`
+        );
+    }
+    
+    /**
+     * Setup network status monitoring
+     * This helps detect when the device goes offline/online
+     */
+    setupNetworkMonitoring() {
+        // Set initial network status
+        this.state.networkStatus = navigator.onLine ? 'online' : 'offline';
+        
+        // Update state when network status changes
+        window.addEventListener('online', () => {
+            console.log('Network connection restored');
+            this.state.networkStatus = 'online';
+            this.state.offlineMode = false;
+            
+            // If we have a last successful endpoint, try using it again
+            if (this.state.lastSuccessfulEndpoint) {
+                this.state.currentEndpoint = this.state.lastSuccessfulEndpoint;
+            }
+            
+            // Notify user that we're back online
+            this.appendMessage('system', 'Network connection restored. All features are now available.');
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('Network connection lost');
+            this.state.networkStatus = 'offline';
+            this.state.offlineMode = true;
+            
+            // Notify user of limited functionality
+            this.appendMessage('system', 'Network connection lost. Operating with limited functionality.');
+        });
+        
+        // Periodically check endpoint availability
+        setInterval(() => this.checkEndpointAvailability(), 60000); // Check every minute
+    }
+    
+    /**
+     * Check if our endpoints are available
+     */
+    async checkEndpointAvailability() {
+        if (!navigator.onLine) return; // Skip if offline
+        
+        try {
+            // Just send a HEAD request to check if the endpoint is responding
+            const response = await fetch(this.state.currentEndpoint, { 
+                method: 'HEAD',
+                signal: AbortSignal.timeout(5000)
+            });
+            
+            if (response.ok) {
+                this.state.lastSuccessfulEndpoint = this.state.currentEndpoint;
+                this.state.offlineMode = false;
+            }
+        } catch (error) {
+            console.log('Endpoint availability check failed:', error);
+            // Don't switch endpoints here - wait for an actual request to fail
+        }
+    }
+    
+    /**
+     * Append a system message to the chat
+     * @param {string} message - The system message to display
+     */
+    appendSystemMessage(message) {
+        const messageElem = document.createElement('div');
+        messageElem.className = 'chat-message system-message';
+        messageElem.innerHTML = `<div class="message-content system-content">${message}</div>`;
+        
+        if (this.elements.chatMessages) {
+            this.elements.chatMessages.appendChild(messageElem);
+            this.elements.chatMessages.scrollTop = this.elements.chatMessages.scrollHeight;
+        }
     }
 }
 
