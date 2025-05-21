@@ -675,59 +675,72 @@ setupEventListeners() {
     
       async processUserInput(input) {
         if (this.elements.loader) {
-          this.elements.loader.style.display = "flex";
+            this.elements.loader.style.display = "flex";
         }
     
         try {
-          if (!input || input.trim() === '') {
-            throw new Error('No input provided');
-          }
+            if (!input || input.trim() === '') {
+                throw new Error('No input provided');
+            }
     
-          const response = await this.getChatCompletion(input);
-          console.log('Bot response:', response);
-          
-          // Check if this is an offline/fallback response
-          if (response.offline) {
-            this.appendMessage('bot', response.text);
-            this.appendMessage('system', 
-              'Note: I\'m currently operating in offline mode due to connectivity issues. ' +
-              'Some features may be limited until connection is restored.');
-          } else {
+            const response = await this.getChatCompletion(input);
+            console.log('Bot response:', response);
+            
+            // Check if this is an offline/fallback response
+            if (response.offline) {
+                this.appendMessage('bot', response.text);
+                this.appendMessage('system', 
+                    'Note: I\'m currently operating in offline mode due to connectivity issues. ' +
+                    'Some features may be limited until connection is restored.');
+                // Do not send offline/fallback messages to TTS
+                return;
+            }
+    
+            // If the response is an error or contains "error" or "Unknown function", do not send to TTS
+            if (
+                !response.text ||
+                response.text.toLowerCase().includes('error') ||
+                response.text.toLowerCase().includes('unknown function')
+            ) {
+                this.appendMessage('bot', response.text);
+                return;
+            }
+    
             // Handle normal response with potential special content
             if (response.meetings && response.meetings.length > 0) {
-              const cardContent = this.createActionItemsCard(response.meetings);
-              this.appendMessage('bot', cardContent);
+                const cardContent = this.createActionItemsCard(response.meetings);
+                this.appendMessage('bot', cardContent);
             }
-      
+    
             this.appendMessage('bot', response.text);
-          }
     
-          await new Promise(resolve => setTimeout(resolve, this.config.responseDelay));
+            await new Promise(resolve => setTimeout(resolve, this.config.responseDelay));
     
-          const cleanedResponse = this.cleanTextForSpeech(response.text);
-          await this.playAudioResponse(cleanedResponse);
+            const cleanedResponse = this.cleanTextForSpeech(response.text);
+            await this.playAudioResponse(cleanedResponse);
+    
         } catch (error) {
-          console.error('Error processing user input:', error);
-          
-          // Provide more helpful error messages based on error type
-          if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-            this.appendMessage('bot', 
-              'Sorry, I\'m having trouble connecting to my language processing service. ' +
-              'This might be due to network issues or the service being temporarily unavailable. ' +
-              'I\'ll continue to operate with limited capabilities.');
-          } else if (error.name === 'AbortError') {
-            this.appendMessage('bot', 
-              'Sorry, the request timed out. This might be due to network issues or high server load. ' +
-              'Please try again in a moment.');
-          } else {
-            this.appendMessage('bot', 'Sorry, I encountered an error processing your request. Please try again.');
-          }
-          
-          this.updateVoiceStatus('Ready');
+            console.error('Error processing user input:', error);
+            
+            // Provide more helpful error messages based on error type
+            if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+                this.appendMessage('bot', 
+                    'Sorry, I\'m having trouble connecting to my language processing service. ' +
+                    'This might be due to network issues or the service being temporarily unavailable. ' +
+                    'I\'ll continue to operate with limited capabilities.');
+            } else if (error.name === 'AbortError') {
+                this.appendMessage('bot', 
+                    'Sorry, the request timed out. This might be due to network issues or high server load. ' +
+                    'Please try again in a moment.');
+            } else {
+                this.appendMessage('bot', 'Sorry, I encountered an error processing your request. Please try again.');
+            }
+            
+            this.updateVoiceStatus('Ready');
         } finally {
-          if (this.elements.loader) {
-            this.elements.loader.style.display = "none";
-          }
+            if (this.elements.loader) {
+                this.elements.loader.style.display = "none";
+            }
         }
       }
     
