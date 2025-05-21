@@ -769,16 +769,16 @@ setupEventListeners() {
             }
     
             console.log(`Trying endpoint: ${this.state.currentEndpoint}`);
+            // Always send { prompt, sessionId } as the root object
             const response = await fetch(this.state.currentEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     prompt: prompt,
                     sessionId: this.sessionId
                 }),
-                // Add timeout to prevent hanging requests
                 signal: AbortSignal.timeout(10000)
             });
     
@@ -794,7 +794,8 @@ setupEventListeners() {
                     return this.getChatCompletion(prompt, retries);
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
-            }            const data = await response.json();
+            }
+            const data = await response.json();
             
             if (!data.response || (!data.response.text && !data.response.parts)) {
                 throw new Error('Invalid response structure from server');
