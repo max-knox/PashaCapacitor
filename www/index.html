@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="assets/css/settings-modal.css">
     <link rel="stylesheet" href="assets/css/scheduler-modal.css">
     <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="assets/css/elevenlabs.css">
     <link href="https://fonts.googleapis.com/css2?family=Amaranth:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
     <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
@@ -427,7 +428,7 @@
     
     <!-- Initialize controllers after ensuring scripts are loaded -->
     <script type="module">
-        import { PushController } from './assets/js/push_controller.js';
+        import { ElevenLabsController } from './assets/js/elevenlabs_controller.js';
         import { MeetingController } from './assets/js/meetingController.js';
         
         document.addEventListener('DOMContentLoaded', () => {
@@ -458,7 +459,10 @@
                 
                 // Initialize controllers
                 const meetingController = new MeetingController(db);
-                const pushController = new PushController();
+                const elevenLabsController = new ElevenLabsController();
+                
+                // Make controller globally accessible for debugging
+                window.elevenLabsController = elevenLabsController;
                 
                 // Initialize scheduler controller
                 try {
@@ -478,7 +482,7 @@
                 }
                 
                 meetingController.init();
-                pushController.init();
+                elevenLabsController.init();
                 // Don't initialize scheduler until it's opened
                 
                 // Initialize clear chat functionality
