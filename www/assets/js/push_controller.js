@@ -8,8 +8,8 @@ export class PushController {
           isListening: false,
           isAgentSpeaking: false,
           isProcessing: false,
-          currentEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/agent_completions_enhanced_v1', // Primary endpoint
-          fallbackEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/agent_completions_enhanced_v1', // Backup endpoint
+          currentEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/agent_completions', // Primary endpoint
+          fallbackEndpoint: 'https://us-central1-pa-sha.cloudfunctions.net/agent_completions', // Backup endpoint
           localFallbackEnabled: true, // Enable local fallback when both endpoints fail
           networkStatus: 'online', // Track network status
           lastSuccessfulEndpoint: null, // Track which endpoint worked last
