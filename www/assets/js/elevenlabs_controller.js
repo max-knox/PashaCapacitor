@@ -245,33 +245,40 @@ export class ElevenLabsController {
                 // Based on the error, it seems the SDK expects the signed URL to contain
                 // conversation details including conversationId
                 if (sessionConfig.signedUrl) {
-                    // Pass the signed URL as the first parameter
-                    this.conversation = new ConversationClass(sessionConfig.signedUrl, {
-                        onConnect: () => {
-                            console.log('Connected to ElevenLabs');
-                            this.handleConnectionEstablished();
-                        },
-                        onDisconnect: () => {
-                            console.log('Disconnected from ElevenLabs');
-                            this.handleDisconnection();
-                        },
-                        onMessage: (message) => {
-                            console.log('Message received:', message);
-                            this.handleMessage(message);
-                        },
-                        onError: (error) => {
-                            console.error('Conversation error:', error);
-                            this.handleError(error);
-                        },
-                        onStatusChange: (status) => {
-                            console.log('Status changed:', status);
-                            this.handleStatusChange(status);
-                        },
-                        onModeChange: (mode) => {
-                            console.log('Mode changed:', mode);
-                            this.handleModeChange(mode);
+                    // Try passing just the signed URL
+                    console.log('Creating conversation with signed URL directly...');
+                    try {
+                        this.conversation = new ConversationClass(sessionConfig.signedUrl);
+                        console.log('Conversation created! Setting up event handlers...');
+                        
+                        // The SDK might use event emitters or a different pattern
+                        if (this.conversation.on) {
+                            this.conversation.on('connect', () => this.handleConnectionEstablished());
+                            this.conversation.on('disconnect', () => this.handleDisconnection());
+                            this.conversation.on('message', (msg) => this.handleMessage(msg));
+                            this.conversation.on('error', (err) => this.handleError(err));
+                            this.conversation.on('status-change', (status) => this.handleStatusChange(status));
+                            this.conversation.on('mode-change', (mode) => this.handleModeChange(mode));
                         }
-                    });
+                        
+                        // Or it might auto-connect when created with a URL
+                        console.log('Conversation instance created successfully');
+                        
+                    } catch (err) {
+                        console.error('Error creating conversation with URL:', err);
+                        
+                        // Try with options object
+                        console.log('Trying with options object...');
+                        this.conversation = new ConversationClass({
+                            signedUrl: sessionConfig.signedUrl,
+                            onConnect: () => this.handleConnectionEstablished(),
+                            onDisconnect: () => this.handleDisconnection(),
+                            onMessage: (msg) => this.handleMessage(msg),
+                            onError: (err) => this.handleError(err),
+                            onStatusChange: (status) => this.handleStatusChange(status),
+                            onModeChange: (mode) => this.handleModeChange(mode)
+                        });
+                    }
                 } else {
                     throw new Error('No signed URL received from Firebase');
                 }
