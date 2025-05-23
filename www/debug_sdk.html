@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElevenLabs SDK Debug</title>
+</head>
+<body>
+    <h1>ElevenLabs SDK Debug</h1>
+    <div id="debug-output"></div>
+    
+    <script type="module">
+        const debugOutput = document.getElementById('debug-output');
+        
+        function log(message, data = null) {
+            console.log(message, data);
+            const div = document.createElement('div');
+            div.innerHTML = `<strong>${message}</strong>`;
+            if (data) {
+                const pre = document.createElement('pre');
+                pre.style.background = '#f4f4f4';
+                pre.style.padding = '10px';
+                pre.style.marginTop = '5px';
+                pre.textContent = JSON.stringify(data, null, 2);
+                div.appendChild(pre);
+            }
+            debugOutput.appendChild(div);
+        }
+        
+        try {
+            log('Loading ElevenLabs SDK...');
+            
+            // Import the SDK
+            const ElevenLabsSDK = await import('https://cdn.jsdelivr.net/npm/@11labs/client@latest/+esm');
+            
+            log('SDK loaded successfully');
+            log('SDK object:', Object.keys(ElevenLabsSDK));
+            
+            // Check what's available in the SDK
+            for (const [key, value] of Object.entries(ElevenLabsSDK)) {
+                log(`SDK.${key}:`, {
+                    type: typeof value,
+                    isClass: typeof value === 'function' && value.prototype,
+                    constructor: typeof value === 'function' ? value.name : null,
+                    prototype: typeof value === 'function' && value.prototype ? Object.getOwnPropertyNames(value.prototype) : null
+                });
+            }
+            
+            // Try to find Conversation class
+            const ConversationClass = ElevenLabsSDK.Conversation || 
+                                     (ElevenLabsSDK.default && ElevenLabsSDK.default.Conversation) ||
+                                     ElevenLabsSDK.ConversationalAI ||
+                                     ElevenLabsSDK.Chat;
+            
+            if (ConversationClass) {
+                log('Found Conversation class!');
+                log('Conversation constructor:', ConversationClass.toString().substring(0, 200) + '...');
+                log('Conversation prototype methods:', Object.getOwnPropertyNames(ConversationClass.prototype));
+                
+                // Try to create an instance to see what parameters it expects
+                try {
+                    log('Testing empty constructor...');
+                    const testInstance = new ConversationClass();
+                    log('Empty constructor succeeded! Instance:', {
+                        keys: Object.keys(testInstance),
+                        methods: Object.getOwnPropertyNames(Object.getPrototypeOf(testInstance))
+                    });
+                } catch (err) {
+                    log('Empty constructor failed:', err.message);
+                    log('Error details:', {
+                        name: err.name,
+                        message: err.message,
+                        stack: err.stack
+                    });
+                }
+                
+                // Try with a dummy URL
+                try {
+                    log('Testing with dummy URL...');
+                    const testInstance2 = new ConversationClass('ws://test.example.com');
+                    log('URL constructor succeeded!');
+                } catch (err) {
+                    log('URL constructor failed:', err.message);
+                }
+                
+                // Try with options object
+                try {
+                    log('Testing with options object...');
+                    const testInstance3 = new ConversationClass({
+                        url: 'ws://test.example.com',
+                        onConnect: () => {},
+                        onDisconnect: () => {},
+                        onMessage: () => {},
+                        onError: () => {}
+                    });
+                    log('Options constructor succeeded!');
+                } catch (err) {
+                    log('Options constructor failed:', err.message);
+                }
+                
+            } else {
+                log('No Conversation class found!');
+                log('Available exports:', Object.keys(ElevenLabsSDK));
+            }
+            
+        } catch (error) {
+            log('Error loading SDK:', error.message);
+            log('Full error:', error);
+        }
+    </script>
+</body>
+</html>

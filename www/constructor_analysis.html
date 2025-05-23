@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElevenLabs Constructor Analysis</title>
+    <style>
+        body { font-family: monospace; margin: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .info { color: #2196f3; }
+        .warning { color: #ff9800; }
+        pre { background: #2d2d2d; padding: 15px; border-radius: 5px; overflow: auto; }
+        button { padding: 10px 15px; margin: 5px; background: #007acc; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>ElevenLabs Constructor Deep Analysis</h1>
+    <button onclick="analyzeConstructor()">Analyze Constructor</button>
+    <button onclick="testMinimal()">Test Minimal</button>
+    <div id="output"></div>
+
+    <script type="module">
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            output.appendChild(div);
+            console.log(message);
+        }
+        
+        window.analyzeConstructor = async () => {
+            try {
+                output.innerHTML = '';
+                log('🔍 Loading ElevenLabs SDK for deep analysis...', 'info');
+                
+                const ElevenLabsSDK = await import('https://cdn.jsdelivr.net/npm/@11labs/client@latest/+esm');
+                const Conversation = ElevenLabsSDK.Conversation;
+                
+                log('✅ SDK loaded, analyzing constructor...', 'success');
+                
+                // Get the constructor source code
+                const constructorSource = Conversation.toString();
+                log(`📋 Constructor source (first 1000 chars):<pre>${constructorSource.substring(0, 1000)}...</pre>`, 'info');
+                
+                // Check constructor length (number of expected parameters)
+                log(`📊 Constructor expects ${Conversation.length} parameter(s)`, 'info');
+                
+                // Try to create an instance and inspect what happens
+                log('🧪 Attempting empty constructor...', 'info');
+                try {
+                    const emptyInstance = new Conversation();
+                    log('✅ Empty constructor succeeded', 'success');
+                    log(`📊 Instance properties: ${Object.getOwnPropertyNames(emptyInstance).join(', ')}`, 'info');
+                    log(`📊 Instance methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(emptyInstance)).join(', ')}`, 'info');
+                    
+                    // Check if instance has expected properties
+                    if (emptyInstance.options) {
+                        log(`📊 Instance.options exists: ${typeof emptyInstance.options}`, 'success');
+                        log(`📊 Options properties: ${Object.keys(emptyInstance.options || {}).join(', ')}`, 'info');
+                    } else {
+                        log('⚠️ Instance.options is undefined', 'warning');
+                    }
+                    
+                } catch (error) {
+                    log(`❌ Empty constructor failed: ${error.message}`, 'error');
+                }
+                
+                // Get signed URL for testing
+                log('🌐 Getting signed URL...', 'info');
+                const response = await fetch('https://us-central1-pa-sha.cloudfunctions.net/elevenLabsSignedUrl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agentId: 'agent_01jvmw236se6fvyxmhm19x62kh' })
+                });
+                
+                const sessionConfig = await response.json();
+                log(`✅ Got signed URL: ${sessionConfig.signedUrl.substring(0, 50)}...`, 'success');
+                
+                // Test different constructor parameter combinations
+                const testCases = [
+                    {
+                        name: 'Just signed URL string',
+                        test: () => new Conversation(sessionConfig.signedUrl)
+                    },
+                    {
+                        name: 'Options object only',
+                        test: () => new Conversation({ 
+                            signedUrl: sessionConfig.signedUrl,
+                            onConnect: () => {},
+                            onMessage: () => {},
+                            onError: () => {}
+                        })
+                    },
+                    {
+                        name: 'URL string + options object',
+                        test: () => new Conversation(sessionConfig.signedUrl, {
+                            onConnect: () => {},
+                            onMessage: () => {},
+                            onError: () => {}
+                        })
+                    },
+                    {
+                        name: 'Minimal options with callbacks',
+                        test: () => new Conversation({
+                            url: sessionConfig.signedUrl,
+                            onConnect: () => {},
+                            onMessage: () => {}
+                        })
+                    }
+                ];
+                
+                for (const testCase of testCases) {
+                    log(`🧪 Testing: ${testCase.name}`, 'info');
+                    try {
+                        const instance = testCase.test();
+                        log(`✅ SUCCESS: ${testCase.name}`, 'success');
+                        log(`📊 Instance type: ${typeof instance}`, 'info');
+                        log(`📊 Constructor: ${instance.constructor.name}`, 'info');
+                        
+                        // Check internal state
+                        if (instance.options) {
+                            log(`📊 Has options: ${JSON.stringify(Object.keys(instance.options))}`, 'success');
+                        }
+                        if (instance.signedUrl || instance.url) {
+                            log(`📊 Has URL property: ${!!(instance.signedUrl || instance.url)}`, 'success');
+                        }
+                        
+                        // This is our winner!
+                        log(`🎉 WORKING PATTERN: ${testCase.name}`, 'success');
+                        break;
+                        
+                    } catch (error) {
+                        log(`❌ FAILED: ${testCase.name} - ${error.message}`, 'error');
+                    }
+                }
+                
+            } catch (error) {
+                log(`💥 Analysis failed: ${error.message}`, 'error');
+            }
+        };
+        
+        window.testMinimal = async () => {
+            try {
+                output.innerHTML = '';
+                log('🎯 Testing minimal working example...', 'info');
+                
+                const ElevenLabsSDK = await import('https://cdn.jsdelivr.net/npm/@11labs/client@latest/+esm');
+                const Conversation = ElevenLabsSDK.Conversation;
+                
+                // Get signed URL
+                const response = await fetch('https://us-central1-pa-sha.cloudfunctions.net/elevenLabsSignedUrl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agentId: 'agent_01jvmw236se6fvyxmhm19x62kh' })
+                });
+                const sessionConfig = await response.json();
+                
+                // Try the most basic approach that should work
+                log('🔄 Attempting basic initialization...', 'info');
+                
+                const conversation = new Conversation({
+                    signedUrl: sessionConfig.signedUrl,
+                    onConnect: () => log('🟢 Connected!', 'success'),
+                    onDisconnect: () => log('🔴 Disconnected', 'warning'),
+                    onMessage: (msg) => log(`📨 Message: ${JSON.stringify(msg)}`, 'info'),
+                    onError: (err) => log(`❌ Error: ${err}`, 'error')
+                });
+                
+                log('✅ Conversation created successfully!', 'success');
+                log(`📊 Instance details: ${JSON.stringify({
+                    hasOptions: !!conversation.options,
+                    methods: Object.getOwnPropertyNames(Object.getPrototypeOf(conversation)),
+                    properties: Object.getOwnPropertyNames(conversation)
+                }, null, 2)}`, 'info');
+                
+                // Try to connect (don't actually do it to avoid issues)
+                log('🔗 Instance created successfully - ready for connection', 'success');
+                
+            } catch (error) {
+                log(`❌ Minimal test failed: ${error.message}`, 'error');
+                log(`📋 Stack: ${error.stack}`, 'error');
+            }
+        };
+    </script>
+</body>
+</html>

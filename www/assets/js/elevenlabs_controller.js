@@ -7,7 +7,7 @@ export class ElevenLabsController {
     constructor() {
         this.conversation = null;
         this.isConversationActive = false;
-        this.agentId = null; // Will be set from config
+        this.agentId = null;
         
         this.state = {
             isConnected: false,
@@ -26,7 +26,6 @@ export class ElevenLabsController {
             pauseButton: null
         };
 
-        // Use imported configuration with fallback to empty config
         this.config = {
             agentId: ELEVENLABS_CONFIG.agentId || null,
             signedUrlEndpoint: ELEVENLABS_CONFIG.signedUrlEndpoint || null,
@@ -42,33 +41,18 @@ export class ElevenLabsController {
 
         try {
             console.log('Initializing ElevenLabsController...');
-
-            // Initialize elements
             await this.initializeElements();
-
-            // Setup event listeners
             this.setupEventListeners();
-
-            // Setup network monitoring
             this.setupNetworkMonitoring();
-
-            // Setup mode buttons
             this.setupModeButtons();
-
-            // Load the ElevenLabs SDK
             await this.loadElevenLabsSDK();
 
-            // Display initial message
             if (this.elements.chatMessages) {
                 this.appendMessage('bot', FIRST_MESSAGE);
             }
 
-            // Set initial voice status
             this.updateVoiceStatus('Ready');
-
-            // Initialize button states
             this.updateButtonStates('ready');
-
             this.isInitialized = true;
             console.log('ElevenLabsController initialization complete');
 
@@ -83,260 +67,190 @@ export class ElevenLabsController {
             if (this.elements.talkButton) {
                 this.elements.talkButton.disabled = true;
             }
-
             throw error;
         }
     }
 
+    /**
+     * Load ElevenLabs SDK and store Conversation class globally
+     */
     async loadElevenLabsSDK() {
         return new Promise((resolve, reject) => {
-            // Check if the SDK is already loaded
             if (window.ElevenLabsConversation) {
                 console.log('ElevenLabs SDK already loaded');
                 resolve();
                 return;
             }
 
-            // Create script element
             const script = document.createElement('script');
             script.type = 'module';
             
-            // Try importing everything from the module
             script.textContent = `
-                import * as ElevenLabsSDK from 'https://cdn.jsdelivr.net/npm/@11labs/client@latest/+esm';
-                
-                console.log('ElevenLabs SDK imported:', ElevenLabsSDK);
-                console.log('SDK type:', typeof ElevenLabsSDK);
-                console.log('SDK keys:', Object.keys(ElevenLabsSDK));
-                
-                // Store the entire SDK
-                window.ElevenLabsSDK = ElevenLabsSDK;
-                
-                // Try to find the Conversation class
-                if (ElevenLabsSDK.Conversation) {
-                    window.ElevenLabsConversation = ElevenLabsSDK.Conversation;
-                    console.log('Found Conversation in SDK');
-                } else if (ElevenLabsSDK.default && ElevenLabsSDK.default.Conversation) {
-                    window.ElevenLabsConversation = ElevenLabsSDK.default.Conversation;
-                    console.log('Found Conversation in default export');
-                } else {
-                    // List all available exports to debug
-                    console.log('Available exports:', ElevenLabsSDK);
-                    for (const key in ElevenLabsSDK) {
-                        console.log('Export:', key, '=', ElevenLabsSDK[key]);
+                try {
+                    console.log('🔄 Loading ElevenLabs SDK...');
+                    
+                    // Import the SDK
+                    const ElevenLabsSDK = await import('https://cdn.jsdelivr.net/npm/@11labs/client@latest/+esm');
+                    
+                    console.log('✅ SDK imported successfully');
+                    console.log('📦 Available exports:', Object.keys(ElevenLabsSDK));
+                    
+                    // Store the Conversation class globally
+                    if (ElevenLabsSDK.Conversation) {
+                        window.ElevenLabsConversation = ElevenLabsSDK.Conversation;
+                        console.log('🎯 Conversation class stored globally');
+                        
+                        // Log available methods
+                        console.log('📊 Conversation static methods:', Object.getOwnPropertyNames(ElevenLabsSDK.Conversation));
+                    } else {
+                        throw new Error('Conversation class not found in SDK');
                     }
+                    
+                    window.dispatchEvent(new Event('elevenlabs-loaded'));
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load ElevenLabs SDK:', error);
+                    window.dispatchEvent(new CustomEvent('elevenlabs-error', { detail: error }));
                 }
-                
-                window.dispatchEvent(new Event('elevenlabs-loaded'));
             `;
             
-            // Listen for the custom event
             window.addEventListener('elevenlabs-loaded', () => {
-                console.log('ElevenLabs SDK loaded successfully');
+                console.log('✅ ElevenLabs SDK loaded successfully');
                 resolve();
             }, { once: true });
             
-            // Set a timeout in case loading fails
+            window.addEventListener('elevenlabs-error', (event) => {
+                console.error('❌ SDK loading failed:', event.detail);
+                reject(new Error(`Failed to load ElevenLabs SDK: ${event.detail.message}`));
+            }, { once: true });
+            
             const timeout = setTimeout(() => {
-                reject(new Error('Failed to load ElevenLabs SDK - timeout'));
+                reject(new Error('Failed to load ElevenLabs SDK - timeout after 10 seconds'));
             }, 10000);
             
-            // Clear timeout on success
-            window.addEventListener('elevenlabs-loaded', () => {
-                clearTimeout(timeout);
-            }, { once: true });
+            window.addEventListener('elevenlabs-loaded', () => clearTimeout(timeout), { once: true });
             
             document.head.appendChild(script);
         });
     }
 
-    async initializeElements() {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                this.elements = {
-                    chatMessages: document.getElementById("chat-messages"),
-                    loader: document.getElementById("loader"),
-                    voiceAction: document.getElementById("voice-action"),
-                    talkButton: document.querySelector('button.push-talk-btn'),
-                    voiceStatus: document.querySelector('.voice_status'),
-                    pauseButton: document.querySelector('button.pause-btn')
-                };
-
-                console.log('Initialized elements:', this.elements);
-
-                // Update button text and styling
-                if (this.elements.talkButton) {
-                    this.elements.talkButton.textContent = 'TALK';
-                    this.elements.talkButton.disabled = false;
-                    this.elements.talkButton.classList.add('talk-button');
-                }
-
-                if (this.elements.pauseButton) {
-                    this.elements.pauseButton.style.display = 'none';
-                }
-
-                resolve();
-            }, 100);
-        });
-    }
-
-    setupEventListeners() {
-        // Talk/End Button Events
-        if (this.elements.talkButton) {
-            this.elements.talkButton.addEventListener('click', () => {
-                this.handleTalkButtonClick();
-            });
-        }
-
-        // Handle page visibility changes
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && this.isConversationActive) {
-                this.endConversation();
-            }
-        });
-
-        // Handle window blur
-        window.addEventListener('blur', () => {
-            // Optional: You might want to keep the conversation active
-            // when switching tabs/apps in this implementation
-        });
-    }
-
-    async handleTalkButtonClick() {
-        if (!this.isConversationActive) {
-            await this.startConversation();
-        } else {
-            await this.endConversation();
-        }
-    }
-
+    /**
+     * Start conversation using correct ElevenLabs SDK pattern
+     */
     async startConversation() {
         try {
-            console.log('=== Starting Conversation ===');
+            console.log('=== Starting ElevenLabs Conversation ===');
             this.updateVoiceStatus('Connecting...');
             this.elements.talkButton.textContent = 'CONNECTING...';
             this.elements.talkButton.disabled = true;
 
-            // First, get the session configuration (this triggers the endpoint)
-            console.log('Getting session config from Firebase...');
-            const sessionConfig = await this.getSessionConfig();
-            console.log('Session config received:', sessionConfig);
-            console.log('Signed URL:', sessionConfig?.signedUrl);
-            console.log('Full config:', JSON.stringify(sessionConfig, null, 2));
-
-            // Check if SDK is loaded
-            if (!window.ElevenLabsSDK && !window.ElevenLabsConversation) {
+            // Verify SDK is loaded
+            if (!window.ElevenLabsConversation) {
                 throw new Error('ElevenLabs SDK not loaded');
             }
 
-            // The SDK might be expecting the conversation to be initialized with the signed URL
-            // Let's try creating it with the session config directly
-            const ConversationClass = window.ElevenLabsConversation || 
-                                     (window.ElevenLabsSDK && window.ElevenLabsSDK.Conversation);
-            
-            if (!ConversationClass) {
-                console.error('Available SDK exports:', window.ElevenLabsSDK);
-                throw new Error('Conversation class not found in SDK');
-            }
+            // Get session configuration
+            const sessionConfig = await this.getSessionConfig();
+            console.log('📋 Session config received:', {
+                hasSignedUrl: !!sessionConfig.signedUrl,
+                agentId: sessionConfig.agentId,
+                signedUrlPreview: sessionConfig.signedUrl?.substring(0, 50) + '...'
+            });
 
-            console.log('Creating Conversation with signed URL...');
+            // Request microphone permission first
+            await this.requestMicrophonePermission();
+
+            console.log('🚀 Initializing conversation with Conversation.startSession()...');
             
-            try {
-                // Based on the error, it seems the SDK expects the signed URL to contain
-                // conversation details including conversationId
-                if (sessionConfig.signedUrl) {
-                    // Try passing just the signed URL
-                    console.log('Creating conversation with signed URL directly...');
-                    try {
-                        this.conversation = new ConversationClass(sessionConfig.signedUrl);
-                        console.log('Conversation created! Setting up event handlers...');
-                        
-                        // The SDK might use event emitters or a different pattern
-                        if (this.conversation.on) {
-                            this.conversation.on('connect', () => this.handleConnectionEstablished());
-                            this.conversation.on('disconnect', () => this.handleDisconnection());
-                            this.conversation.on('message', (msg) => this.handleMessage(msg));
-                            this.conversation.on('error', (err) => this.handleError(err));
-                            this.conversation.on('status-change', (status) => this.handleStatusChange(status));
-                            this.conversation.on('mode-change', (mode) => this.handleModeChange(mode));
-                        }
-                        
-                        // Or it might auto-connect when created with a URL
-                        console.log('Conversation instance created successfully');
-                        
-                    } catch (err) {
-                        console.error('Error creating conversation with URL:', err);
-                        
-                        // Try with options object
-                        console.log('Trying with options object...');
-                        this.conversation = new ConversationClass({
-                            signedUrl: sessionConfig.signedUrl,
-                            onConnect: () => this.handleConnectionEstablished(),
-                            onDisconnect: () => this.handleDisconnection(),
-                            onMessage: (msg) => this.handleMessage(msg),
-                            onError: (err) => this.handleError(err),
-                            onStatusChange: (status) => this.handleStatusChange(status),
-                            onModeChange: (mode) => this.handleModeChange(mode)
-                        });
-                    }
-                } else {
-                    throw new Error('No signed URL received from Firebase');
-                }
+            // Use the CORRECT ElevenLabs SDK pattern: Conversation.startSession()
+            this.conversation = await window.ElevenLabsConversation.startSession({
+                signedUrl: sessionConfig.signedUrl,
                 
-                console.log('Conversation created successfully!');
-                this.isConversationActive = true;
-
-            } catch (error) {
-                console.error('Error creating conversation:', error);
-                console.error('Error stack:', error.stack);
-                throw error;
-            }
+                // Event callbacks as documented
+                onConnect: () => {
+                    console.log('🟢 ElevenLabs: Connected');
+                    this.handleConnectionEstablished();
+                },
+                
+                onDisconnect: () => {
+                    console.log('🔴 ElevenLabs: Disconnected');
+                    this.handleDisconnection();
+                },
+                
+                onMessage: (message) => {
+                    console.log('📨 ElevenLabs: Message received', message);
+                    this.handleMessage(message);
+                },
+                
+                onError: (error) => {
+                    console.error('❌ ElevenLabs: Error', error);
+                    this.handleError(error);
+                },
+                
+                onStatusChange: (status) => {
+                    console.log('📊 ElevenLabs: Status change', status);
+                    this.handleStatusChange(status);
+                },
+                
+                onModeChange: (mode) => {
+                    console.log('🔄 ElevenLabs: Mode change', mode);
+                    this.handleModeChange(mode);
+                }
+            });
+            
+            console.log('✅ Conversation started successfully!');
+            console.log('📊 Conversation instance:', {
+                id: this.conversation.getId ? this.conversation.getId() : 'N/A',
+                methods: Object.getOwnPropertyNames(Object.getPrototypeOf(this.conversation))
+            });
+            
+            this.isConversationActive = true;
 
         } catch (error) {
-            console.error('Error starting conversation:', error);
+            console.error('❌ Error starting conversation:', error);
             this.updateVoiceStatus('Error');
             this.elements.talkButton.textContent = 'TALK';
             this.elements.talkButton.disabled = false;
-            this.appendMessage('bot', 'Sorry, I couldn\'t start the conversation. Please check your configuration and try again.');
+            
+            // Fixed: Provide user-friendly error messages with proper string escaping
+            let errorMessage = "Sorry, I could not start the conversation. ";
+            if (error.message.includes('microphone')) {
+                errorMessage += 'Please allow microphone access and try again.';
+            } else if (error.message.includes('websocket') || error.message.includes('network')) {
+                errorMessage += 'Please check your internet connection and try again.';
+            } else {
+                errorMessage += 'Please try again in a moment.';
+            }
+            
+            this.appendMessage('bot', errorMessage);
         }
     }
 
-    setupConversationHandlers() {
-        if (!this.conversation) return;
-        
-        // Try different event binding methods
-        if (typeof this.conversation.on === 'function') {
-            // Event emitter style
-            this.conversation.on('connect', () => this.handleConnectionEstablished());
-            this.conversation.on('disconnect', () => this.handleDisconnection());
-            this.conversation.on('message', (message) => this.handleMessage(message));
-            this.conversation.on('error', (error) => this.handleError(error));
-            this.conversation.on('status-change', (status) => this.handleStatusChange(status));
-            this.conversation.on('mode-change', (mode) => this.handleModeChange(mode));
-        } else if (typeof this.conversation.addEventListener === 'function') {
-            // DOM style event listeners
-            this.conversation.addEventListener('connect', () => this.handleConnectionEstablished());
-            this.conversation.addEventListener('disconnect', () => this.handleDisconnection());
-            this.conversation.addEventListener('message', (e) => this.handleMessage(e.data || e));
-            this.conversation.addEventListener('error', (e) => this.handleError(e.error || e));
-            this.conversation.addEventListener('statusChange', (e) => this.handleStatusChange(e.data || e));
-            this.conversation.addEventListener('modeChange', (e) => this.handleModeChange(e.data || e));
-        } else {
-            console.warn('No event binding method found on conversation object');
+    /**
+     * Request microphone permission before starting conversation
+     */
+    async requestMicrophonePermission() {
+        try {
+            console.log('🎤 Requesting microphone permission...');
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log('✅ Microphone permission granted');
+        } catch (error) {
+            console.error('❌ Microphone permission denied:', error);
+            throw new Error('Microphone access is required for voice conversations');
         }
     }
 
+    /**
+     * Get session configuration from Firebase or use agent ID directly
+     */
     async getSessionConfig() {
-        console.log('getSessionConfig called');
-        console.log('Config:', this.config);
+        console.log('Getting session config...');
         
-        // For private agents, prioritize signed URL endpoint
         if (this.config.signedUrlEndpoint) {
             console.log('Using signed URL endpoint:', this.config.signedUrlEndpoint);
             try {
                 const requestBody = {};
                 
-                // If agentId is provided in config, include it in the request
                 if (this.config.agentId && this.config.agentId !== 'YOUR_ELEVENLABS_AGENT_ID') {
                     requestBody.agentId = this.config.agentId;
                 }
@@ -351,26 +265,24 @@ export class ElevenLabsController {
                     body: JSON.stringify(requestBody)
                 });
 
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
-
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Signed URL endpoint error:', errorData);
-                    throw new Error(errorData.error || 'Failed to get signed URL');
+                    const errorText = await response.text();
+                    console.error('Signed URL endpoint error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
 
                 const data = await response.json();
-                console.log('Received signed URL response:', data);
+                console.log('✅ Received signed URL from Firebase');
                 
-                // Check if we have all required data
                 if (!data.signedUrl) {
                     console.error('No signedUrl in response data:', data);
                     throw new Error('No signed URL in response');
                 }
                 
                 return {
-                    signedUrl: data.signedUrl
+                    signedUrl: data.signedUrl,
+                    agentId: data.agentId || this.config.agentId,
+                    expiresAt: data.expiresAt
                 };
             } catch (error) {
                 console.error('Error getting signed URL:', error);
@@ -378,24 +290,32 @@ export class ElevenLabsController {
             }
         }
         
-        // Fall back to agent ID for public agents (only if no signed URL endpoint)
+        // Fallback to direct agent ID (for public agents)
         if (this.config.agentId && this.config.agentId !== 'YOUR_ELEVENLABS_AGENT_ID') {
-            console.log('Using agent ID configuration (public agent)');
+            console.log('Using direct agent ID for public agent');
             return {
                 agentId: this.config.agentId
             };
         }
 
-        console.error('No valid configuration found');
-        console.error('Config agentId:', this.config.agentId);
-        console.error('Config signedUrlEndpoint:', this.config.signedUrlEndpoint);
         throw new Error('No agent ID or signed URL endpoint configured. Please update elevenlabs_config.js');
     }
 
+    /**
+     * End the conversation using the correct method
+     */
     async endConversation() {
         try {
             if (this.conversation) {
-                await this.conversation.endSession();
+                console.log('🛑 Ending conversation...');
+                
+                // Use the correct ElevenLabs SDK method
+                if (typeof this.conversation.endSession === 'function') {
+                    await this.conversation.endSession();
+                } else {
+                    console.warn('endSession method not found on conversation instance');
+                }
+                
                 this.conversation = null;
             }
 
@@ -405,21 +325,26 @@ export class ElevenLabsController {
             this.elements.talkButton.disabled = false;
             this.updateButtonStates('ready');
 
+            console.log('✅ Conversation ended successfully');
+
         } catch (error) {
             console.error('Error ending conversation:', error);
         }
     }
 
+    // Event Handlers
     handleConnectionEstablished() {
+        console.log('🟢 Connection established');
         this.state.isConnected = true;
         this.updateVoiceStatus('Connected');
         this.elements.talkButton.textContent = 'END';
         this.elements.talkButton.disabled = false;
         this.elements.talkButton.classList.add('end-button');
-        this.appendMessage('bot', 'Connection established. You can start speaking now!');
+        this.appendMessage('bot', 'Connected! You can start speaking now.');
     }
 
     handleDisconnection() {
+        console.log('🔴 Disconnected');
         this.state.isConnected = false;
         this.isConversationActive = false;
         this.updateVoiceStatus('Disconnected');
@@ -430,35 +355,37 @@ export class ElevenLabsController {
     }
 
     handleMessage(message) {
-        // Handle different message types
-        if (message.type === 'user_transcript') {
-            // User's speech transcription
+        console.log('📨 Message received:', message);
+        
+        // Handle different message types based on ElevenLabs documentation
+        if (message.type === 'user_transcript' || message.type === 'user_transcription') {
             if (message.text && message.text.trim() !== '') {
                 this.appendMessage('user', message.text);
             }
-        } else if (message.type === 'agent_response') {
-            // Agent's response
+        } else if (message.type === 'agent_response' || message.type === 'agent_message') {
             if (message.text && message.text.trim() !== '') {
                 this.appendMessage('bot', message.text);
             }
-        } else if (message.type === 'user_transcript_final') {
-            // Final transcription of user's speech
-            // You might want to update the previous message instead of adding a new one
-            console.log('Final transcript:', message.text);
+        } else if (message.type === 'transcript' && message.message) {
+            // Handle generic transcript format
+            if (message.source === 'user' && message.message.trim() !== '') {
+                this.appendMessage('user', message.message);
+            } else if (message.source === 'agent' && message.message.trim() !== '') {
+                this.appendMessage('bot', message.message);
+            }
         }
 
-        // Store in conversation history
         this.conversationHistory.push(message);
     }
 
     handleError(error) {
-        console.error('Conversation error:', error);
+        console.error('❌ Conversation error:', error);
         this.appendMessage('bot', 'Sorry, an error occurred during the conversation. Please try again.');
         this.endConversation();
     }
 
     handleStatusChange(status) {
-        // Update UI based on connection status
+        console.log('📊 Status change:', status);
         switch (status) {
             case 'connected':
                 this.updateVoiceStatus('Connected');
@@ -473,8 +400,12 @@ export class ElevenLabsController {
     }
 
     handleModeChange(mode) {
-        // Update UI based on conversation mode
-        switch (mode) {
+        console.log('🔄 Mode change:', mode);
+        
+        // Handle mode object or string
+        const modeValue = typeof mode === 'object' ? mode.mode : mode;
+        
+        switch (modeValue) {
             case 'listening':
                 this.updateVoiceStatus('Listening');
                 this.state.isUserSpeaking = true;
@@ -493,16 +424,64 @@ export class ElevenLabsController {
         }
     }
 
+    // UI Management Methods
+    async initializeElements() {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                this.elements = {
+                    chatMessages: document.getElementById("chat-messages"),
+                    loader: document.getElementById("loader"),
+                    voiceAction: document.getElementById("voice-action"),
+                    talkButton: document.querySelector('button.push-talk-btn'),
+                    voiceStatus: document.querySelector('.voice_status'),
+                    pauseButton: document.querySelector('button.pause-btn')
+                };
+
+                if (this.elements.talkButton) {
+                    this.elements.talkButton.textContent = 'TALK';
+                    this.elements.talkButton.disabled = false;
+                    this.elements.talkButton.classList.add('talk-button');
+                }
+
+                if (this.elements.pauseButton) {
+                    this.elements.pauseButton.style.display = 'none';
+                }
+
+                resolve();
+            }, 100);
+        });
+    }
+
+    setupEventListeners() {
+        if (this.elements.talkButton) {
+            this.elements.talkButton.addEventListener('click', () => {
+                this.handleTalkButtonClick();
+            });
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && this.isConversationActive) {
+                this.endConversation();
+            }
+        });
+    }
+
+    async handleTalkButtonClick() {
+        if (!this.isConversationActive) {
+            await this.startConversation();
+        } else {
+            await this.endConversation();
+        }
+    }
+
     updateVoiceStatus(status) {
         if (this.elements.voiceAction) {
             this.elements.voiceAction.textContent = status;
         }
 
-        // Remove any existing animation classes
         if (this.elements.voiceStatus) {
             this.elements.voiceStatus.classList.remove('listening-pulse', 'speaking-pulse', 'thinking-pulse');
 
-            // Add appropriate animation class based on status
             if (status === 'Listening') {
                 this.elements.voiceStatus.classList.add('listening-pulse');
             } else if (status === 'Speaking') {
@@ -577,7 +556,6 @@ export class ElevenLabsController {
 
         this.elements.chatMessages.appendChild(msgDiv);
         
-        // Scroll to bottom
         requestAnimationFrame(() => {
             const chatMessages = this.elements.chatMessages;
             const horizonHero = chatMessages.closest('.horizon_hero');
@@ -651,7 +629,6 @@ export class ElevenLabsController {
     }
 
     async handleModeButtonClick(mode) {
-        // End conversation if active
         if (this.isConversationActive) {
             await this.endConversation();
         }
@@ -662,9 +639,7 @@ export class ElevenLabsController {
         switch(mode) {
             case 'chronicle':
                 message = "Chronicle Mode activated.";
-                action = () => {
-                    console.log('Chronicle mode started');
-                };
+                action = () => console.log('Chronicle mode started');
                 break;
                 
             case 'scheduler':
@@ -693,9 +668,7 @@ export class ElevenLabsController {
                 
             case 'settings':
                 message = "Opening settings panel...";
-                action = () => {
-                    this.openSettings();
-                };
+                action = () => this.openSettings();
                 break;
         }
 
@@ -718,30 +691,26 @@ export class ElevenLabsController {
         }
     }
 
-    // Method to set configuration
+    // Utility methods
     setConfig(config) {
         this.config = { ...this.config, ...config };
         console.log('ElevenLabs configuration updated:', this.config);
     }
 
-    // Method to get conversation history
     getConversationHistory() {
         return this.conversationHistory;
     }
 
-    // Method to clear conversation history
     clearConversationHistory() {
         this.conversationHistory = [];
         console.log('Conversation history cleared');
     }
 
-    // Cleanup method
     cleanup() {
         if (this.isConversationActive) {
             this.endConversation();
         }
         
-        // Remove event listeners if needed
         this.state = {
             isConnected: false,
             isAgentSpeaking: false,
