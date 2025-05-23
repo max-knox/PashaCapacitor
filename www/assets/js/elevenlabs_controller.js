@@ -221,6 +221,8 @@ export class ElevenLabsController {
             console.log('Getting session config from Firebase...');
             const sessionConfig = await this.getSessionConfig();
             console.log('Session config received:', sessionConfig);
+            console.log('Signed URL:', sessionConfig?.signedUrl);
+            console.log('Full config:', JSON.stringify(sessionConfig, null, 2));
 
             // Check if SDK is loaded
             if (!window.ElevenLabsSDK && !window.ElevenLabsConversation) {
@@ -318,15 +320,12 @@ export class ElevenLabsController {
     }
 
     async getSessionConfig() {
-        // If using agent ID directly (for public agents)
-        if (this.config.agentId && this.config.agentId !== 'YOUR_ELEVENLABS_AGENT_ID') {
-            return {
-                agentId: this.config.agentId
-            };
-        }
-
-        // If using signed URL endpoint for authorized agents
+        console.log('getSessionConfig called');
+        console.log('Config:', this.config);
+        
+        // For private agents, prioritize signed URL endpoint
         if (this.config.signedUrlEndpoint) {
+            console.log('Using signed URL endpoint:', this.config.signedUrlEndpoint);
             try {
                 const requestBody = {};
                 
@@ -335,6 +334,8 @@ export class ElevenLabsController {
                     requestBody.agentId = this.config.agentId;
                 }
                 
+                console.log('Making request to Firebase with body:', requestBody);
+                
                 const response = await fetch(this.config.signedUrlEndpoint, {
                     method: 'POST',
                     headers: {
@@ -342,6 +343,9 @@ export class ElevenLabsController {
                     },
                     body: JSON.stringify(requestBody)
                 });
+
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
 
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -354,6 +358,7 @@ export class ElevenLabsController {
                 
                 // Check if we have all required data
                 if (!data.signedUrl) {
+                    console.error('No signedUrl in response data:', data);
                     throw new Error('No signed URL in response');
                 }
                 
@@ -365,7 +370,18 @@ export class ElevenLabsController {
                 throw error;
             }
         }
+        
+        // Fall back to agent ID for public agents (only if no signed URL endpoint)
+        if (this.config.agentId && this.config.agentId !== 'YOUR_ELEVENLABS_AGENT_ID') {
+            console.log('Using agent ID configuration (public agent)');
+            return {
+                agentId: this.config.agentId
+            };
+        }
 
+        console.error('No valid configuration found');
+        console.error('Config agentId:', this.config.agentId);
+        console.error('Config signedUrlEndpoint:', this.config.signedUrlEndpoint);
         throw new Error('No agent ID or signed URL endpoint configured. Please update elevenlabs_config.js');
     }
 
