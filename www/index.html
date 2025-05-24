@@ -3,486 +3,493 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Primary Meta Tags -->
-    <title>Pasha - Personal Assistant</title>
-    <meta name="title" content="Alfred" />
-    <meta name="description" content="Pre Screening Application for Social Security Disability Insurance (SSDI) or Supplemental Security Income (SSI) benefits." />
+    <title>Pasha - Personal Assistant (Tailwind)</title>
+    <meta name="title" content="Pasha - Personal Assistant (Tailwind)" />
+    <meta name="description" content="Pasha, your personal assistant with a new Tailwind CSS interface." />
     <meta name="robots" content="index, follow">
-    <meta name="keywords" content="National Disability Alliance, NDA, SSDI, SSI, NDA Assistant">
+    <meta name="keywords" content="Pasha, Assistant, Chatbot, Tailwind CSS, Capacitor">
 
     <link rel="icon" type="image/png" href="assets/img/favicon/favicon.png">
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css?v=7857324">
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css" media="all">
-    <link rel="stylesheet" href="assets/css/pasha_beta.css">
-    <link rel="stylesheet" href="assets/css/pasha_new.css">
-    <link rel="stylesheet" href="assets/css/settings-modal.css">
-    <link rel="stylesheet" href="assets/css/scheduler-modal.css">
-    <link rel="stylesheet" href="assets/css/theme.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+
     <link href="https://fonts.googleapis.com/css2?family=Amaranth:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
-    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
-    
-    <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js" integrity="sha256-eTyxS0rkjpLEo16uXTS0uVCS4815lc40K2iVpWDvdSY=" crossorigin="anonymous"></script>
-    <script src="assets/js/popper.min.js"></script>  
-    <script src="assets/js/bootstrap.min.js"></script>
 
-<!-- Firebase App (the core Firebase SDK) -->
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-app.js"></script>
+    <style>
+        /* Custom scrollbar for chat (optional, but nice) */
+        .chat-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-scrollbar::-webkit-scrollbar-thumb {
+            background: #4a5568; /* gray-700 */
+            border-radius: 4px;
+        }
+        .chat-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #2d3748; /* gray-800 */
+        }
 
-<!-- Firebase Auth -->
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-auth.js"></script>
+        /* Basic body styling */
+        body {
+            font-family: 'Open Sans', sans-serif;
+            /* Ensure no default margin/padding interferes with full-screen layout */
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll on body */
+        }
+        .font-amaranth {
+            font-family: 'Amaranth', sans-serif;
+        }
 
-<!-- Firebase Realtime Database -->
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-database.js"></script>
+        /* Placeholder for hero_bg1 - replace with your actual image or gradient */
+        .hero_bg1_tailwind {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Example gradient */
+        }
 
-<!-- Firebase Functions -->
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-functions.js"></script>
+        /* Placeholder for dotbg - replace with your actual dot pattern or background */
+        .dotbg_tailwind {
+            background-color: #1a202c; /* Example dark background */
+            /* background-image: radial-gradient(#4a5568 1px, transparent 1px); Example dot pattern */
+            /* background-size: 10px 10px; */
+        }
 
-<!-- Firebase Firestore -->
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-firestore.js"></script>
+        /* Ensure modals are on top */
+        .settings-modal, .scheduler-modal {
+            z-index: 50;
+        }
 
-<!-- Firebase Storage -->
-<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-storage.js"></script>
+        /* Specific styling for Pasha logo text if needed */
+        .pashaLogoText {
+            font-family: 'Amaranth', sans-serif;
+            font-weight: 700;
+            font-size: 1.75rem; /* Equivalent to h4 or a bit larger */
+            color: white;
+        }
 
-
-<script src="https://unpkg.com/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
-<!-- <script src="assets/js/sphere_visualization.js"></script> -->
-<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-
+        /* Custom styling for the clear chat button to position it */
+        #chat-messages {
+            position: relative; /* Needed for absolute positioning of the button */
+        }
+        .clear-chat-button {
+            position: absolute;
+            top: 1rem; /* 16px */
+            right: 1rem; /* 16px */
+            z-index: 10; /* Ensure it's above chat messages */
+        }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'open-sans': ['"Open Sans"', 'sans-serif'],
+              'amaranth': ['"Amaranth"', 'sans-serif'],
+            },
+            colors: {
+              'pasha-blue': '#667eea',
+              'pasha-purple': '#764ba2',
+              'pasha-dark': '#1a202c',
+              'pasha-gray': '#2d3748',
+              'pasha-light-gray': '#4a5568',
+            }
+          }
+        }
+      }
+    </script>
 </head>
-<body>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 antialiased">
 
-<div class="bot_load">
-    <div class="pre_wrapper_clear">
-      <div class="nda_bar"></div>
-    <h1 class="splash_intro">Pasha</h1>
-    <h1 class="splash_intro_text">First you need to enable your microphone</h1>
-    <button id="startChatButton" class="btn btn-welcome mt-4 mx-auto">ENABLE MICROPHONE</button>
-
+<div class="bot_load fixed inset-0 bg-pasha-dark/90 backdrop-blur-sm flex flex-col items-center justify-center z-[100] p-4">
+    <div class="pre_wrapper_clear text-center">
+      <div class="nda_bar w-24 h-1 bg-pasha-blue mx-auto mb-4 rounded"></div>
+      <h1 class="splash_intro font-amaranth text-5xl text-white mb-2">Pasha</h1>
+      <h1 class="splash_intro_text text-xl text-gray-300 mb-6">First you need to enable your microphone</h1>
+      <button id="startChatButton" class="btn btn-welcome bg-pasha-blue hover:bg-pasha-purple text-white font-semibold py-3 px-8 rounded-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+        ENABLE MICROPHONE
+      </button>
   </div>
 </div>
 
-<section class="agent-section container-fluid">
-  <div class="agent_left hero_bg1">
-    <div class="horizon_bot">
-      <div class="msger horizon_hero">
-        <header class="msger-header-agent">
-          <div class="msger-header-content">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <style>.robot-icon{fill:#ffffff}</style>
-              <path class="robot-icon" d="M12 2C13.1 2 14 2.9 14 4L14 6C14 7.11 13.11 8 12 8C10.9 8 10 7.11 10 6L10 4C10 2.9 10.9 2 12 2M17 8C18.1 8 19 8.9 19 10L19 16C19 17.1 18.1 18 17 18L7 18C5.9 18 5 17.1 5 16L5 10C5 8.9 5.9 8 7 8L17 8M7 10C6.45 10 6 10.45 6 11C6 11.55 6.45 12 7 12C7.55 12 8 11.55 8 11C8 10.45 7.55 10 7 10M17 10C16.45 10 16 10.45 16 11C16 11.55 16.45 12 17 12C17.55 12 18 11.55 18 11C18 10.45 17.55 10 17 10M12 14C10.9 14 10 14.9 10 16L14 16C14 14.9 13.1 14 12 14Z"/>
+<section class="agent-section container-fluid min-h-screen flex flex-col lg:flex-row">
+  <div class="agent_left hero_bg1_tailwind flex-grow lg:w-3/5 xl:w-2/3 order-1 lg:order-1 flex flex-col h-screen lg:max-h-screen">
+    <div class="horizon_bot flex flex-col flex-grow h-full">
+      <div class="msger horizon_hero flex flex-col flex-grow h-full p-0">
+        <header class="msger-header-agent bg-black bg-opacity-20 text-white p-4 shadow-md">
+          <div class="msger-header-content flex items-center">
+            <svg class="w-8 h-8 mr-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path class="robot-icon fill-current text-white" d="M12 2C13.1 2 14 2.9 14 4L14 6C14 7.11 13.11 8 12 8C10.9 8 10 7.11 10 6L10 4C10 2.9 10.9 2 12 2M17 8C18.1 8 19 8.9 19 10L19 16C19 17.1 18.1 18 17 18L7 18C5.9 18 5 17.1 5 16L5 10C5 8.9 5.9 8 7 8L17 8M7 10C6.45 10 6 10.45 6 11C6 11.55 6.45 12 7 12C7.55 12 8 11.55 8 11C8 10.45 7.55 10 7 10M17 10C16.45 10 16 10.45 16 11C16 11.55 16.45 12 17 12C17.55 12 18 11.55 18 11C18 10.45 17.55 10 17 10M12 14C10.9 14 10 14.9 10 16L14 16C14 14.9 13.1 14 12 14Z"/>
             </svg>
             <div class="msger-header-title">
               <span class="pashaLogoText">Pasha</span>
             </div>
-            <div id="loader" class="msger-header-options progress"></div>
-            <audio id="audioPlayer" controls style="display:none;">
-              Audio Player
-            </audio>
+            <div id="loader" class="msger-header-options progress ml-auto w-1/4 h-2 bg-pasha-light-gray rounded overflow-hidden">
+                <div class="bg-pasha-blue h-full" style="width: 50%;"></div> </div>
+            <audio id="audioPlayer" controls class="hidden">Audio Player</audio>
           </div>
-          <!-- <input type="checkbox" checked data-toggle="toggle" style="margin-left:auto !important;"> -->
         </header>
-        <main class="msger-chat-welcome" id="chat-messages">
-          <button id="clear-chat-btn" class="clear-chat-button" title="Clear Chat" aria-label="Clear chat messages">
+        <main class="msger-chat-welcome flex-grow p-6 overflow-y-auto chat-scrollbar relative" id="chat-messages">
+          <button id="clear-chat-btn" class="clear-chat-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-full text-xs shadow-lg transition duration-300" title="Clear Chat" aria-label="Clear chat messages">
             <i class="fas fa-trash-alt"></i>
           </button>
-        </main>
+          <div class="msg left-msg mb-4 flex">
+            <div class="msg-img w-12 h-12 rounded-full bg-pasha-purple flex items-center justify-center text-white text-xl mr-3">P</div>
+            <div class="msg-bubble bg-gray-200 dark:bg-pasha-gray p-3 rounded-lg shadow max-w-xs lg:max-w-md">
+              <div class="msg-info text-xs text-gray-500 dark:text-gray-400 mb-1">Pasha <span class="ml-2">10:00 AM</span></div>
+              <div class="msg-text text-gray-800 dark:text-gray-200">Hi, welcome to Pasha! How can I help you today?</div>
+            </div>
+          </div>
+          <div class="msg right-msg mb-4 flex flex-row-reverse">
+            <div class="msg-img w-12 h-12 rounded-full bg-pasha-blue flex items-center justify-center text-white text-xl ml-3">U</div>
+            <div class="msg-bubble bg-pasha-blue text-white p-3 rounded-lg shadow max-w-xs lg:max-w-md">
+              <div class="msg-info text-xs text-pasha-blue-lighter dark:text-gray-300 mb-1 text-right">You <span class="mr-2">10:01 AM</span></div>
+              <div class="msg-text">Hello Pasha! I need some assistance.</div>
+            </div>
+          </div>
+           </main>
       </div>
     </div>
   </div>
-  <div class="agent_right dotbg">
-    <div class="agent_screen">
-      <!-- Voice Action Readout -->
-      <div class="agent_controll">
-          <div class="voice_status text-center">
-              <span id="voice-action" class="voiceSpan">Ready</span>
-          </div>
-      </div>
 
-      <!-- <div class="llm_Readout">
-          <div class="llm_readout_title terminal-medium light">Language Model: Gemini</div>
-      </div> -->
+  <div class="agent_right dotbg_tailwind flex flex-col lg:w-2/5 xl:w-1/3 order-2 lg:order-2 p-6 space-y-6 h-screen lg:max-h-screen overflow-y-auto">
+    <div class="agent_screen flex-grow bg-pasha-dark bg-opacity-30 backdrop-blur-sm rounded-xl p-4 shadow-xl min-h-[200px] lg:min-h-[300px] flex flex-col items-center justify-center text-center">
+        <div class="agent_controll mb-4 w-full">
+            <div class="voice_status text-center p-3 bg-black bg-opacity-20 rounded-lg">
+                <span id="voice-action" class="voiceSpan text-xl font-semibold text-gray-200">Ready</span>
+            </div>
+        </div>
 
-      <div class="chronicle_mode">
-        <!-- Chronicle mode interface -->
+        <div class="tool-call-output w-full flex-grow flex items-center justify-center">
+            <p class="text-gray-400 text-lg">Tool outputs will appear here...</p>
+            <!-- <div class="bg-white/10 p-4 rounded-lg w-full max-w-sm">
+                <h3 class="text-white text-lg font-semibold mb-2">Weather</h3>
+                <p class="text-gray-300">Sunny, 25°C</p>
+            </div> -->
+        </div>
 
-      </div>
+        <div class="chronicle_mode hidden mt-4 w-full">
+            <h3 class="text-lg font-semibold text-white mb-2">Chronicle Mode Active</h3>
+            <div class="bg-black bg-opacity-20 p-3 rounded-lg text-gray-300">
+                Chronicle entries will be displayed here.
+            </div>
+        </div>
 
-      <div class="agent_s3">
-        <!-- Large Language Model Selection -->
-         <!-- <div class="llm-card gemini"></div>
-         <div class="llm-card llama llm-card-active"></div>
-         <div class="llm-card grok"></div>
-         <div class="llm-card claude"></div>
-         <div class="llm-card openAI"></div> -->
-      </div>
+        <div class="agent_s3 mt-auto pt-4 hidden">
+             <p class="text-xs text-gray-500">LLM Selection Area</p>
+        </div>
     </div>
-    <div class="pasha-nav">
-      <div class="nav-wrap">
-        <div class="wrap-top">
-          <button class="push-talk-btn terminal-medium"  style="margin-bottom:20px;">PUSH TO TALK</button>
-          <button class="pause-btn terminal-medium"  style="margin-bottom:20px;">PAUSE</button>
+
+    <div class="pasha-nav mt-auto"> <div class="nav-wrap">
+        <div class="wrap-top mb-5 flex flex-col items-center space-y-3">
+          <button class="push-talk-btn terminal-medium w-full max-w-xs bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-lg text-lg shadow-xl transition duration-300 ease-in-out transform hover:scale-105">
+            PUSH TO TALK
+          </button>
+          <button class="pause-btn terminal-medium w-full max-w-xs bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg text-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+            PAUSE
+          </button>
         </div>
         <div id="main_buttons" class="wrap-bottom">
-          <div class="button-container">
-            
-            <!-- <button id="meetingModeBtn" class="circle-btn terminal-medium">MEETING MODE</button> -->
-            <button id="chronicleModeBtn" class="circle-btn terminal-medium">CHRONICLE</button>
-            <button id="schedulerBtn" class="circle-btn terminal-medium">SCHEDULER</button>
-            <button id="messengerBtn" class="circle-btn terminal-medium">MESSENGER</button>
-            <!-- <button id="newsBtn" class="circle-btn terminal-medium">NEWS</button> -->
-            <button id="settingsModeBtn" class="circle-btn terminal-medium">SETTINGS</button>
-            <!-- <button id="historyModeBtn" class="circle-btn terminal-medium">HISTORY</button> -->
+          <div class="button-container grid grid-cols-2 sm:grid-cols-2 gap-3">
+            <button id="chronicleModeBtn" class="circle-btn terminal-medium bg-pasha-blue hover:bg-pasha-purple text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">CHRONICLE</button>
+            <button id="schedulerBtn" class="circle-btn terminal-medium bg-pasha-blue hover:bg-pasha-purple text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">SCHEDULER</button>
+            <button id="messengerBtn" class="circle-btn terminal-medium bg-pasha-blue hover:bg-pasha-purple text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">MESSENGER</button>
+            <button id="settingsModeBtn" class="circle-btn terminal-medium bg-pasha-blue hover:bg-pasha-purple text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">SETTINGS</button>
           </div>
-        </div> 
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Settings Modal -->
-<div id="settingsModal" class="settings-modal">
-  <div class="settings-modal-header">
-    <h2 class="settings-modal-title">Settings</h2>
-    <button id="closeSettingsBtn" class="settings-modal-close">&times;</button>
-  </div>
-  
-  <div class="settings-modal-body">
-    <!-- Left Column -->
-    <div class="settings-column">
-      <div class="settings-section">
-        <h3>Voice Settings</h3>
-        <div class="settings-item">
-          <label for="voiceSelect">Voice:</label>
-          <select id="voiceSelect">
-            <option value="default">Default</option>
-            <option value="voice1">Voice 1</option>
-            <option value="voice2">Voice 2</option>
-          </select>
-        </div>
-        <div class="settings-item">
-          <label for="voiceSpeed">Voice Speed:</label>
-          <select id="voiceSpeed">
-            <option value="0.8">Slow</option>
-            <option value="1.0" selected>Normal</option>
-            <option value="1.2">Fast</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="settings-section">
-        <h3>Language Settings</h3>
-        <div class="settings-item">
-          <label for="language">Language:</label>
-          <select id="language">
-            <option value="en-US" selected>English (US)</option>
-            <option value="es-ES">Spanish</option>
-          </select>
-        </div>
-      </div>
+<div id="settingsModal" class="settings-modal fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-pasha-dark rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div class="settings-modal-header flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+      <h2 class="settings-modal-title text-2xl font-amaranth font-bold text-pasha-blue dark:text-pasha-purple">Settings</h2>
+      <button id="closeSettingsBtn" class="settings-modal-close text-gray-400 hover:text-red-500 transition duration-150">
+        <i class="fas fa-times fa-2x"></i>
+      </button>
     </div>
     
-    <!-- Right Column -->
-    <div class="settings-column">
-      <div class="settings-section">
-        <h3>Interface Settings</h3>
-        <div class="settings-item">
-          <label for="theme">Theme:</label>
-          <select id="theme">
-            <option value="light" selected>Light</option>
-            <option value="dark">Dark</option>
-            <option value="auto">Auto (System)</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="settings-section">
-        <h3>Notification Settings</h3>
-        <div class="settings-item">
-          <label for="notificationSound">Notification Sound:</label>
-          <select id="notificationSound">
-            <option value="default" selected>Default</option>
-            <option value="silent">Silent</option>
-            <option value="subtle">Subtle</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="settings-footer">
-    <button id="saveSettingsBtn" class="btn-save-settings">Save Settings</button>
-  </div>
-</div>
-
-<!-- Scheduler Modal -->
-<div id="schedulerModal" class="scheduler-modal">
-  <div class="scheduler-modal-header">
-    <h2 class="scheduler-modal-title">Scheduler</h2>
-    <button id="closeSchedulerBtn" class="scheduler-modal-close">&times;</button>
-  </div>
-  
-  <div class="scheduler-tabs">
-    <button id="calendarTab" class="scheduler-tab active">Calendar</button>
-    <button id="upcomingTab" class="scheduler-tab">Upcoming</button>
-  </div>
-  
-  <div class="scheduler-modal-body">
-    <!-- Left Column (Calendar) -->
-    <div id="calendarColumn" class="scheduler-column active">
-      <div class="calendar-container">
-        <div class="calendar-header">
-          <div class="calendar-nav">
-            <button id="prevMonth" class="calendar-btn"><i class="fas fa-chevron-left"></i></button>
-            <h3 class="current-month">May 2025</h3>
-            <button id="nextMonth" class="calendar-btn"><i class="fas fa-chevron-right"></i></button>
-          </div>
-          <div class="calendar-view-toggle">
-            <button class="view-btn active">Month</button>
-            <button class="view-btn">Week</button>
-            <button class="view-btn">Day</button>
-          </div>
-        </div>
-        
-        <div class="calendar-grid">
-          <!-- Days of week headers -->
-          <div class="calendar-day-header">Sun</div>
-          <div class="calendar-day-header">Mon</div>
-          <div class="calendar-day-header">Tue</div>
-          <div class="calendar-day-header">Wed</div>
-          <div class="calendar-day-header">Thu</div>
-          <div class="calendar-day-header">Fri</div>
-          <div class="calendar-day-header">Sat</div>
-          
-          <!-- Calendar days will be generated by JavaScript -->
-        </div>
-      </div>
-      
-      <div class="scheduler-section">
-        <h3>Create New Event <button id="quickAddBtn">Quick Add</button></h3>
-        <form id="newEventForm">
-          <div class="scheduler-form-group">
-            <label for="eventTitle">Event Title</label>
-            <input type="text" id="eventTitle" class="scheduler-form-control" placeholder="Enter event title">
-          </div>
-          
-          <div class="scheduler-form-row">
-            <div class="scheduler-form-group">
-              <label for="eventDate">Date</label>
-              <input type="date" id="eventDate" class="scheduler-form-control">
+    <div class="settings-modal-body grid md:grid-cols-2 gap-6 p-6 overflow-y-auto">
+      <div class="settings-column space-y-6">
+        <div class="settings-section">
+          <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300 border-l-4 border-pasha-blue pl-2">Voice Settings</h3>
+          <div class="settings-item space-y-3">
+            <div>
+              <label for="voiceSelect" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Voice:</label>
+              <select id="voiceSelect" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue">
+                <option value="default">Default</option>
+                <option value="voice1">Voice 1 (Friendly Female)</option>
+                <option value="voice2">Voice 2 (Calm Male)</option>
+              </select>
             </div>
-            
-            <div class="scheduler-form-group">
-              <label for="eventType">Type</label>
-              <select id="eventType" class="scheduler-form-control">
-                <option value="meeting">Meeting</option>
-                <option value="travel">Travel</option>
-                <option value="personal">Personal</option>
+            <div>
+              <label for="voiceSpeed" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Voice Speed:</label>
+              <select id="voiceSpeed" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue">
+                <option value="0.8">Slow</option>
+                <option value="1.0" selected>Normal</option>
+                <option value="1.2">Fast</option>
               </select>
             </div>
           </div>
-          
-          <div class="scheduler-form-row">
-            <div class="scheduler-form-group">
-              <label for="eventStart">Start Time</label>
-              <input type="time" id="eventStart" class="scheduler-form-control">
-            </div>
-            
-            <div class="scheduler-form-group">
-              <label for="eventEnd">End Time</label>
-              <input type="time" id="eventEnd" class="scheduler-form-control">
-            </div>
+        </div>
+        
+        <div class="settings-section">
+          <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300 border-l-4 border-pasha-blue pl-2">Language Settings</h3>
+          <div class="settings-item">
+            <label for="language" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Language:</label>
+            <select id="language" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue">
+              <option value="en-US" selected>English (US)</option>
+              <option value="es-ES">Spanish (Español)</option>
+              <option value="fr-FR">French (Français)</option>
+            </select>
           </div>
-          
-          <div class="scheduler-form-group">
-            <label for="eventLocation">Location</label>
-            <input type="text" id="eventLocation" class="scheduler-form-control" placeholder="Enter location">
+        </div>
+      </div>
+      
+      <div class="settings-column space-y-6">
+        <div class="settings-section">
+          <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300 border-l-4 border-pasha-blue pl-2">Interface Settings</h3>
+          <div class="settings-item">
+            <label for="theme" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Theme:</label>
+            <select id="theme" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue">
+              <option value="light" selected>Light</option>
+              <option value="dark">Dark</option>
+              <option value="auto">Auto (System)</option>
+            </select>
           </div>
-          
-          <div class="scheduler-form-group">
-            <label for="eventDescription">Description</label>
-            <textarea id="eventDescription" class="scheduler-form-control" rows="3" placeholder="Enter description"></textarea>
+        </div>
+        
+        <div class="settings-section">
+          <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300 border-l-4 border-pasha-blue pl-2">Notification Settings</h3>
+          <div class="settings-item">
+            <label for="notificationSound" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Notification Sound:</label>
+            <select id="notificationSound" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue">
+              <option value="default" selected>Default</option>
+              <option value="silent">Silent</option>
+              <option value="subtle">Subtle</option>
+            </select>
           </div>
-          
-          <button type="submit" class="schedule-event-btn">Schedule Event</button>
-        </form>
+        </div>
       </div>
     </div>
     
-    <!-- Right Column (Upcoming Events) -->
-    <div id="upcomingColumn" class="scheduler-column">
-      <div class="scheduler-section">
-        <h3>Upcoming Events</h3>
-        <ul class="event-list">
-          <!-- Events will be dynamically populated -->
-          <li class="event-item">
-            <div class="event-indicator meeting"></div>
-            <div class="event-content">
-              <h4 class="event-title">Product Team Meeting</h4>
-              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 21, 2025, 10:00 AM - 11:30 AM</div>
-              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> Conference Room A</div>
-            </div>
-          </li>
-          <li class="event-item">
-            <div class="event-indicator travel"></div>
-            <div class="event-content">
-              <h4 class="event-title">Flight to New York</h4>
-              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 23, 2025, 2:45 PM - 6:20 PM</div>
-              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> SFO to JFK, Flight AA123</div>
-            </div>
-          </li>
-          <li class="event-item">
-            <div class="event-indicator personal"></div>
-            <div class="event-content">
-              <h4 class="event-title">Dentist Appointment</h4>
-              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 25, 2025, 9:00 AM - 10:00 AM</div>
-              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> Dr. Smith's Office</div>
-            </div>
-          </li>
-        </ul>
-      </div>
-      
-      <div class="scheduler-section">
-        <h3>Travel Plans</h3>
-        <ul class="event-list">
-          <li class="event-item">
-            <div class="event-indicator travel"></div>
-            <div class="event-content">
-              <h4 class="event-title">Flight to New York</h4>
-              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 23, 2025, 2:45 PM - 6:20 PM</div>
-              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> SFO to JFK, Flight AA123</div>
-            </div>
-          </li>
-          <li class="event-item">
-            <div class="event-indicator travel"></div>
-            <div class="event-content">
-              <h4 class="event-title">Hotel Check-in</h4>
-              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 23, 2025, 8:00 PM</div>
-              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> Hilton Midtown, New York</div>
-            </div>
-          </li>
-          <li class="event-item">
-            <div class="event-indicator travel"></div>
-            <div class="event-content">
-              <h4 class="event-title">Return Flight</h4>
-              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 26, 2025, 3:30 PM - 7:15 PM</div>
-              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> JFK to SFO, Flight AA456</div>
-            </div>
-          </li>
-        </ul>
-      </div>
-      
-      <div class="scheduler-section">
-        <h3>Pending Actions <button id="markCompleteBtn">Mark Complete</button></h3>
-        <ul class="event-list">
-          <li class="event-item">
-            <div class="event-indicator"></div>
-            <div class="event-content">
-              <h4 class="event-title">Complete Project Presentation</h4>
-              <div class="event-time"><i class="fas fa-clock event-icon"></i> Due: May 22, 2025</div>
-            </div>
-          </li>
-          <li class="event-item">
-            <div class="event-indicator"></div>
-            <div class="event-content">
-              <h4 class="event-title">Book Hotel for Conference</h4>
-              <div class="event-time"><i class="fas fa-clock event-icon"></i> Due: May 21, 2025</div>
-            </div>
-          </li>
-        </ul>
-      </div>
+    <div class="settings-footer p-6 border-t border-gray-200 dark:border-gray-700 text-right">
+      <button id="saveSettingsBtn" class="btn-save-settings bg-pasha-blue hover:bg-pasha-purple text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300">Save Settings</button>
     </div>
   </div>
 </div>
 
-    <script>
-        window._env_ = {
-          apiKey: "10101101010111010100101",
-          authDomain: "example.com",
-          databaseURL: "example.com",
-          projectId: "this_project",
-          storageBucket: "this_bucket",
-          messagingSenderId: "10101101010111010100101",
-          appId: "10101101010111010100101",
-          measurementId: "G-10101101010111010100101"
-        }
-    </script>
-    <script src="assets/js/bundle.js"></script>
-    <script src="assets/js/animations.js"></script>
-    <script src="assets/js/language.js"></script>
-    <script src="assets/js/interaction.js"></script>
+<div id="schedulerModal" class="scheduler-modal fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+  <div class="bg-white dark:bg-pasha-dark rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div class="scheduler-modal-header flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+      <h2 class="scheduler-modal-title text-2xl font-amaranth font-bold text-pasha-blue dark:text-pasha-purple">Scheduler</h2>
+      <button id="closeSchedulerBtn" class="scheduler-modal-close text-gray-400 hover:text-red-500 transition duration-150">
+        <i class="fas fa-times fa-2x"></i>
+      </button>
+    </div>
     
-    <!-- Meeting-related scripts -->
-    <script src="assets/js/pashaHelper.js"></script>
-    <script src="assets/js/pashaSecondary.js"></script>
-    <script type="module" src="assets/js/meetingController.js"></script>
-    <script src="assets/js/schedulerController.js"></script>
+    <div class="scheduler-tabs flex border-b border-gray-200 dark:border-gray-700 px-6">
+      <button id="calendarTab" class="scheduler-tab py-3 px-4 text-center font-semibold border-b-2 border-pasha-blue text-pasha-blue dark:text-pasha-purple dark:border-pasha-purple transition duration-150">Calendar</button>
+      <button id="upcomingTab" class="scheduler-tab py-3 px-4 text-center font-semibold text-gray-500 dark:text-gray-400 hover:text-pasha-blue dark:hover:text-pasha-purple border-b-2 border-transparent hover:border-pasha-blue dark:hover:border-pasha-purple transition duration-150">Upcoming</button>
+    </div>
     
-    <!-- Initialize controllers after ensuring scripts are loaded -->
-    <script type="module">
-        import { PushController } from './assets/js/push_controller.js';
-        import { MeetingController } from './assets/js/meetingController.js';
+    <div class="scheduler-modal-body grid lg:grid-cols-5 gap-0 flex-grow overflow-hidden">
+      <div id="calendarColumn" class="scheduler-column lg:col-span-3 p-6 space-y-6 overflow-y-auto border-r-0 lg:border-r border-gray-200 dark:border-gray-700">
+        <div class="calendar-container bg-gray-50 dark:bg-pasha-gray/50 p-4 rounded-lg shadow">
+          <div class="calendar-header flex justify-between items-center mb-4">
+            <div class="calendar-nav flex items-center space-x-2">
+              <button id="prevMonth" class="calendar-btn p-2 rounded-md hover:bg-gray-200 dark:hover:bg-pasha-light-gray transition"><i class="fas fa-chevron-left"></i></button>
+              <h3 class="current-month text-lg font-semibold w-32 text-center">May 2025</h3>
+              <button id="nextMonth" class="calendar-btn p-2 rounded-md hover:bg-gray-200 dark:hover:bg-pasha-light-gray transition"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="calendar-view-toggle flex space-x-1 bg-gray-200 dark:bg-pasha-light-gray p-1 rounded-md">
+              <button class="view-btn px-3 py-1 text-sm rounded-md bg-white dark:bg-pasha-gray text-pasha-blue dark:text-pasha-purple shadow">Month</button>
+              <button class="view-btn px-3 py-1 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-pasha-gray">Week</button>
+              <button class="view-btn px-3 py-1 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-pasha-gray">Day</button>
+            </div>
+          </div>
+          <div class="calendar-grid grid grid-cols-7 gap-1 text-center">
+            <div class="calendar-day-header font-semibold text-xs text-gray-500 dark:text-gray-400 py-2">SUN</div>
+            <div class="calendar-day-header font-semibold text-xs text-gray-500 dark:text-gray-400 py-2">MON</div>
+            <div class="calendar-day-header font-semibold text-xs text-gray-500 dark:text-gray-400 py-2">TUE</div>
+            <div class="calendar-day-header font-semibold text-xs text-gray-500 dark:text-gray-400 py-2">WED</div>
+            <div class="calendar-day-header font-semibold text-xs text-gray-500 dark:text-gray-400 py-2">THU</div>
+            <div class="calendar-day-header font-semibold text-xs text-gray-500 dark:text-gray-400 py-2">FRI</div>
+            <div class="calendar-day-header font-semibold text-xs text-gray-500 dark:text-gray-400 py-2">SAT</div>
+            <div class="py-2 border border-transparent rounded-md hover:border-pasha-blue dark:hover:border-pasha-purple cursor-pointer">1</div>
+            <div class="py-2 border border-transparent rounded-md hover:border-pasha-blue dark:hover:border-pasha-purple cursor-pointer">...</div>
+            <div class="py-2 border border-pasha-blue dark:border-pasha-purple bg-pasha-blue/10 dark:bg-pasha-purple/20 rounded-md font-bold cursor-pointer">15</div>
+             <div class="py-2 border border-transparent rounded-md text-gray-400 dark:text-gray-600">...</div>
+          </div>
+        </div>
         
+        <div class="scheduler-section">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 border-l-4 border-pasha-blue pl-2">Create New Event</h3>
+            <button id="quickAddBtn" class="text-sm bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-3 rounded-md transition">Quick Add</button>
+          </div>
+          <form id="newEventForm" class="space-y-4">
+            <div class="scheduler-form-group">
+              <label for="eventTitle" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Event Title</label>
+              <input type="text" id="eventTitle" class="scheduler-form-control w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue" placeholder="Enter event title">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="scheduler-form-group">
+                <label for="eventDate" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Date</label>
+                <input type="date" id="eventDate" class="scheduler-form-control w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue">
+              </div>
+              <div class="scheduler-form-group">
+                <label for="eventType" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Type</label>
+                <select id="eventType" class="scheduler-form-control w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue">
+                  <option value="meeting">Meeting</option>
+                  <option value="travel">Travel</option>
+                  <option value="personal">Personal</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="scheduler-form-group">
+                <label for="eventStart" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Start Time</label>
+                <input type="time" id="eventStart" class="scheduler-form-control w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue">
+              </div>
+              <div class="scheduler-form-group">
+                <label for="eventEnd" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">End Time</label>
+                <input type="time" id="eventEnd" class="scheduler-form-control w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue">
+              </div>
+            </div>
+            <div class="scheduler-form-group">
+              <label for="eventLocation" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Location</label>
+              <input type="text" id="eventLocation" class="scheduler-form-control w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue" placeholder="Enter location">
+            </div>
+            <div class="scheduler-form-group">
+              <label for="eventDescription" class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Description</label>
+              <textarea id="eventDescription" class="scheduler-form-control w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-pasha-gray focus:ring-pasha-blue focus:border-pasha-blue" rows="3" placeholder="Enter description"></textarea>
+            </div>
+            <button type="submit" class="schedule-event-btn w-full bg-pasha-blue hover:bg-pasha-purple text-white font-semibold py-3 px-4 rounded-lg shadow-md transition">Schedule Event</button>
+          </form>
+        </div>
+      </div>
+      
+      <div id="upcomingColumn" class="scheduler-column lg:col-span-2 p-6 space-y-6 overflow-y-auto bg-gray-50 dark:bg-pasha-gray/30 hidden lg:block">
+        <div class="scheduler-section">
+          <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300 border-l-4 border-green-500 pl-2">Upcoming Events</h3>
+          <ul class="event-list space-y-3">
+            <li class="event-item flex items-start p-3 bg-white dark:bg-pasha-gray rounded-lg shadow hover:shadow-md transition">
+              <div class="event-indicator meeting w-3 h-3 bg-blue-500 rounded-full mr-3 mt-1.5 shrink-0"></div>
+              <div class="event-content">
+                <h4 class="event-title font-semibold text-gray-800 dark:text-gray-200">Product Team Meeting</h4>
+                <div class="event-time text-xs text-gray-500 dark:text-gray-400"><i class="fas fa-clock event-icon mr-1"></i> May 21, 2025, 10:00 AM - 11:30 AM</div>
+                <div class="event-location text-xs text-gray-500 dark:text-gray-400"><i class="fas fa-map-marker-alt event-icon mr-1"></i> Conference Room A</div>
+              </div>
+            </li>
+            <li class="event-item flex items-start p-3 bg-white dark:bg-pasha-gray rounded-lg shadow hover:shadow-md transition">
+              <div class="event-indicator travel w-3 h-3 bg-purple-500 rounded-full mr-3 mt-1.5 shrink-0"></div>
+              <div class="event-content">
+                <h4 class="event-title font-semibold text-gray-800 dark:text-gray-200">Flight to New York</h4>
+                <div class="event-time text-xs text-gray-500 dark:text-gray-400"><i class="fas fa-clock event-icon mr-1"></i> May 23, 2025, 2:45 PM - 6:20 PM</div>
+                <div class="event-location text-xs text-gray-500 dark:text-gray-400"><i class="fas fa-map-marker-alt event-icon mr-1"></i> SFO to JFK, Flight AA123</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+    <script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-storage.js"></script>
+
+    <script>
+        // Mock Firebase config - replace with your actual config
+        const firebaseConfig = {
+          apiKey: "YOUR_API_KEY",
+          authDomain: "YOUR_AUTH_DOMAIN",
+          databaseURL: "YOUR_DATABASE_URL",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_STORAGE_BUCKET",
+          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+          appId: "YOUR_APP_ID",
+          measurementId: "YOUR_MEASUREMENT_ID"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        // It's good practice to check if firestore is available
+        // const db = firebase.firestore ? firebase.firestore() : null;
+        // if (!db) console.error("Firestore not initialized");
+    </script>
+
+    <script type="module">
+        // import { PushController } from './assets/js/push_controller.js'; // Ensure this path is correct
+        // import { MeetingController } from './assets/js/meetingController.js'; // Ensure this path is correct
+
         document.addEventListener('DOMContentLoaded', () => {
             const botLoad = document.querySelector('.bot_load');
             const startChatButton = document.getElementById('startChatButton');
+            const settingsModal = document.getElementById('settingsModal');
+            const openSettingsBtn = document.getElementById('settingsModeBtn'); // Assuming this is your settings button
+            const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+            const schedulerModal = document.getElementById('schedulerModal');
+            const openSchedulerBtn = document.getElementById('schedulerBtn'); // Assuming this is your scheduler button
+            const closeSchedulerBtn = document.getElementById('closeSchedulerBtn');
+            const calendarTab = document.getElementById('calendarTab');
+            const upcomingTab = document.getElementById('upcomingTab');
+            const calendarColumn = document.getElementById('calendarColumn');
+            const upcomingColumn = document.getElementById('upcomingColumn');
+
 
             // Check if microphone was previously enabled
             if (localStorage.getItem('microphoneEnabled') === 'true') {
-                botLoad.style.display = 'none';
+                if(botLoad) botLoad.style.display = 'none';
                 initializeControllers();
             } else {
-                startChatButton.addEventListener('click', async () => {
-                    try {
-                        await navigator.mediaDevices.getUserMedia({ audio: true });
-                        localStorage.setItem('microphoneEnabled', 'true');
-                        botLoad.style.display = 'none';
-                        initializeControllers();
-                    } catch (error) {
-                        console.error('Error accessing microphone:', error);
-                        alert('Microphone access is required for this application.');
-                    }
-                });
+                if (startChatButton && botLoad) {
+                    startChatButton.addEventListener('click', async () => {
+                        try {
+                            await navigator.mediaDevices.getUserMedia({ audio: true });
+                            localStorage.setItem('microphoneEnabled', 'true');
+                            botLoad.style.display = 'none';
+                            initializeControllers();
+                        } catch (error) {
+                            console.error('Error accessing microphone:', error);
+                            // Replace alert with a custom modal or on-screen message
+                            const voiceStatus = document.getElementById('voice-action');
+                            if(voiceStatus) voiceStatus.textContent = 'Microphone access denied. Please enable it in browser settings.';
+                            else console.error('Microphone access is required for this application.');
+                        }
+                    });
+                } else {
+                     // Fallback if startChatButton isn't on the page (e.g. mic already enabled)
+                    if(botLoad) botLoad.style.display = 'none';
+                    initializeControllers();
+                }
             }
 
             function initializeControllers() {
-                // Initialize Firebase
-                const db = firebase.firestore();
+                // Initialize Firebase (already done above, but good to have db instance here)
+                // const db = firebase.firestore(); // Make sure db is initialized
                 
-                // Initialize controllers
-                const meetingController = new MeetingController(db);
-                const pushController = new PushController();
+                // Initialize your controllers here if they are JS classes
+                // Example:
+                // const meetingController = new MeetingController(db);
+                // const pushController = new PushController();
+                // meetingController.init();
+                // pushController.init();
                 
-                // Initialize scheduler controller
-                try {
-                    // Try using the global definition first
-                    if (typeof SchedulerController === 'function') {
-                        window.schedulerController = new SchedulerController();
-                    } 
-                    // Fall back to window-defined version if direct reference fails
-                    else if (typeof window.SchedulerController === 'function') {
-                        window.schedulerController = new window.SchedulerController();
-                    } 
-                    else {
-                        console.error('SchedulerController not defined');
-                    }
-                } catch (e) {
-                    console.error('Error initializing SchedulerController:', e);
-                }
-                
-                meetingController.init();
-                pushController.init();
-                // Don't initialize scheduler until it's opened
-                
-                // Initialize clear chat functionality
+                console.log("Pasha (Tailwind UI) Initialized");
                 initializeClearChat();
+                initializeModals();
             }
             
             function initializeClearChat() {
@@ -491,22 +498,113 @@
                 
                 if (clearChatBtn && chatMessages) {
                     clearChatBtn.addEventListener('click', function() {
-                        // Confirm before clearing
+                        // Replace confirm with a custom modal for better UX in Capacitor
+                        // For now, using confirm as a placeholder
                         if (confirm('Are you sure you want to clear all chat messages?')) {
                             // Clear all child elements except the clear button itself
-                            const elements = chatMessages.children;
-                            for (let i = elements.length - 1; i >= 0; i--) {
-                                if (elements[i].id !== 'clear-chat-btn') {
-                                    chatMessages.removeChild(elements[i]);
+                            // A more robust way is to remove all children and re-add the button if it's inside
+                            // Or, better, keep the button outside the scrollable message list.
+                            // For this example, assuming the button is positioned absolutely and not a direct child to be removed.
+                            while (chatMessages.firstChild) {
+                                if(chatMessages.firstChild.id !== 'clear-chat-btn') {
+                                    chatMessages.removeChild(chatMessages.firstChild);
+                                } else {
+                                    // If it's the button itself, break or skip.
+                                    // This logic might need adjustment based on exact DOM.
+                                    // A safer approach is to have a dedicated container for messages.
+                                    break; 
                                 }
                             }
-                            
-                            // Optional: Trigger any cleanup needed by controllers
+                             // Add back a welcome message or leave it empty
+                            const welcomeMsg = document.createElement('div');
+                            welcomeMsg.className = 'text-center text-gray-500 dark:text-gray-400 p-4';
+                            welcomeMsg.textContent = 'Chat cleared. Say something to start!';
+                            // chatMessages.appendChild(welcomeMsg); // Optional: Add a message after clearing
+
                             console.log('Chat cleared successfully');
                         }
                     });
                 }
             }
+
+            function initializeModals() {
+                // Settings Modal
+                if (openSettingsBtn && settingsModal && closeSettingsBtn) {
+                    openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+                    closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+                    // Optional: Close on clicking outside the modal content
+                    settingsModal.addEventListener('click', (event) => {
+                        if (event.target === settingsModal) {
+                            settingsModal.classList.add('hidden');
+                        }
+                    });
+                }
+
+                // Scheduler Modal
+                if (openSchedulerBtn && schedulerModal && closeSchedulerBtn) {
+                    openSchedulerBtn.addEventListener('click', () => schedulerModal.classList.remove('hidden'));
+                    closeSchedulerBtn.addEventListener('click', () => schedulerModal.classList.add('hidden')); // CORRECTED THIS LINE
+                     schedulerModal.addEventListener('click', (event) => {
+                        if (event.target === schedulerModal) {
+                            schedulerModal.classList.add('hidden');
+                        }
+                    });
+                }
+
+                // Scheduler Tabs
+                if (calendarTab && upcomingTab && calendarColumn && upcomingColumn) {
+                    calendarTab.addEventListener('click', () => {
+                        calendarColumn.classList.remove('hidden');
+                        upcomingColumn.classList.add('hidden');
+                        calendarTab.classList.add('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
+                        calendarTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                        upcomingTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                        upcomingTab.classList.remove('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
+                    });
+                    upcomingTab.addEventListener('click', () => {
+                        upcomingColumn.classList.remove('hidden');
+                        // On smaller screens, you might want to hide the calendar column when upcoming is shown
+                        if (window.innerWidth < 1024) { // lg breakpoint
+                           calendarColumn.classList.add('hidden');
+                        } else {
+                           calendarColumn.classList.remove('hidden'); // Keep both visible on larger screens
+                        }
+                        upcomingTab.classList.add('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
+                        upcomingTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                        calendarTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                        calendarTab.classList.remove('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
+                    });
+                }
+            }
+
+            // Handle theme changes (basic example)
+            const themeSelect = document.getElementById('theme');
+            if (themeSelect) {
+                themeSelect.addEventListener('change', (e) => {
+                    const selectedTheme = e.target.value;
+                    if (selectedTheme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    } else if (selectedTheme === 'light') {
+                        document.documentElement.classList.remove('dark');
+                    } else { // Auto
+                        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                            document.documentElement.classList.add('dark');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                        }
+                    }
+                });
+                // Apply initial theme based on preference or auto
+                 if (themeSelect.value === 'auto') {
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        document.documentElement.classList.add('dark');
+                    }
+                 } else if (themeSelect.value === 'dark') {
+                    document.documentElement.classList.add('dark');
+                 }
+            }
+
+
         });
     </script>
 </body>

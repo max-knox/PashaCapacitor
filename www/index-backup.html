@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Primary Meta Tags -->
+    <title>Pasha - Personal Assistant</title>
+    <meta name="title" content="Alfred" />
+    <meta name="description" content="Pre Screening Application for Social Security Disability Insurance (SSDI) or Supplemental Security Income (SSI) benefits." />
+    <meta name="robots" content="index, follow">
+    <meta name="keywords" content="National Disability Alliance, NDA, SSDI, SSI, NDA Assistant">
+
+    <link rel="icon" type="image/png" href="assets/img/favicon/favicon.png">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css?v=7857324">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css" media="all">
+    <link rel="stylesheet" href="assets/css/pasha_beta.css">
+    <link rel="stylesheet" href="assets/css/pasha_new.css">
+    <link rel="stylesheet" href="assets/css/settings-modal.css">
+    <link rel="stylesheet" href="assets/css/scheduler-modal.css">
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Amaranth:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js" integrity="sha256-eTyxS0rkjpLEo16uXTS0uVCS4815lc40K2iVpWDvdSY=" crossorigin="anonymous"></script>
+    <script src="assets/js/popper.min.js"></script>  
+    <script src="assets/js/bootstrap.min.js"></script>
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-app.js"></script>
+
+<!-- Firebase Auth -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-auth.js"></script>
+
+<!-- Firebase Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-database.js"></script>
+
+<!-- Firebase Functions -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-functions.js"></script>
+
+<!-- Firebase Firestore -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-firestore.js"></script>
+
+<!-- Firebase Storage -->
+<script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-storage.js"></script>
+
+
+<script src="https://unpkg.com/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
+<!-- <script src="assets/js/sphere_visualization.js"></script> -->
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+</head>
+<body>
+
+<div class="bot_load">
+    <div class="pre_wrapper_clear">
+      <div class="nda_bar"></div>
+    <h1 class="splash_intro">Pasha</h1>
+    <h1 class="splash_intro_text">First you need to enable your microphone</h1>
+    <button id="startChatButton" class="btn btn-welcome mt-4 mx-auto">ENABLE MICROPHONE</button>
+
+  </div>
+</div>
+
+<section class="agent-section container-fluid">
+  <div class="agent_left hero_bg1">
+    <div class="horizon_bot">
+      <div class="msger horizon_hero">
+        <header class="msger-header-agent">
+          <div class="msger-header-content">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <style>.robot-icon{fill:#ffffff}</style>
+              <path class="robot-icon" d="M12 2C13.1 2 14 2.9 14 4L14 6C14 7.11 13.11 8 12 8C10.9 8 10 7.11 10 6L10 4C10 2.9 10.9 2 12 2M17 8C18.1 8 19 8.9 19 10L19 16C19 17.1 18.1 18 17 18L7 18C5.9 18 5 17.1 5 16L5 10C5 8.9 5.9 8 7 8L17 8M7 10C6.45 10 6 10.45 6 11C6 11.55 6.45 12 7 12C7.55 12 8 11.55 8 11C8 10.45 7.55 10 7 10M17 10C16.45 10 16 10.45 16 11C16 11.55 16.45 12 17 12C17.55 12 18 11.55 18 11C18 10.45 17.55 10 17 10M12 14C10.9 14 10 14.9 10 16L14 16C14 14.9 13.1 14 12 14Z"/>
+            </svg>
+            <div class="msger-header-title">
+              <span class="pashaLogoText">Pasha</span>
+            </div>
+            <div id="loader" class="msger-header-options progress"></div>
+            <audio id="audioPlayer" controls style="display:none;">
+              Audio Player
+            </audio>
+          </div>
+          <!-- <input type="checkbox" checked data-toggle="toggle" style="margin-left:auto !important;"> -->
+        </header>
+        <main class="msger-chat-welcome" id="chat-messages">
+          <button id="clear-chat-btn" class="clear-chat-button" title="Clear Chat" aria-label="Clear chat messages">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </main>
+      </div>
+    </div>
+  </div>
+  <div class="agent_right dotbg">
+    <div class="agent_screen">
+      <!-- Voice Action Readout -->
+      <div class="agent_controll">
+          <div class="voice_status text-center">
+              <span id="voice-action" class="voiceSpan">Ready</span>
+          </div>
+      </div>
+
+      <!-- <div class="llm_Readout">
+          <div class="llm_readout_title terminal-medium light">Language Model: Gemini</div>
+      </div> -->
+
+      <div class="chronicle_mode">
+        <!-- Chronicle mode interface -->
+
+      </div>
+
+      <div class="agent_s3">
+        <!-- Large Language Model Selection -->
+         <!-- <div class="llm-card gemini"></div>
+         <div class="llm-card llama llm-card-active"></div>
+         <div class="llm-card grok"></div>
+         <div class="llm-card claude"></div>
+         <div class="llm-card openAI"></div> -->
+      </div>
+    </div>
+    <div class="pasha-nav">
+      <div class="nav-wrap">
+        <div class="wrap-top">
+          <button class="push-talk-btn terminal-medium"  style="margin-bottom:20px;">PUSH TO TALK</button>
+          <button class="pause-btn terminal-medium"  style="margin-bottom:20px;">PAUSE</button>
+        </div>
+        <div id="main_buttons" class="wrap-bottom">
+          <div class="button-container">
+            
+            <!-- <button id="meetingModeBtn" class="circle-btn terminal-medium">MEETING MODE</button> -->
+            <button id="chronicleModeBtn" class="circle-btn terminal-medium">CHRONICLE</button>
+            <button id="schedulerBtn" class="circle-btn terminal-medium">SCHEDULER</button>
+            <button id="messengerBtn" class="circle-btn terminal-medium">MESSENGER</button>
+            <!-- <button id="newsBtn" class="circle-btn terminal-medium">NEWS</button> -->
+            <button id="settingsModeBtn" class="circle-btn terminal-medium">SETTINGS</button>
+            <!-- <button id="historyModeBtn" class="circle-btn terminal-medium">HISTORY</button> -->
+          </div>
+        </div> 
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="settings-modal">
+  <div class="settings-modal-header">
+    <h2 class="settings-modal-title">Settings</h2>
+    <button id="closeSettingsBtn" class="settings-modal-close">&times;</button>
+  </div>
+  
+  <div class="settings-modal-body">
+    <!-- Left Column -->
+    <div class="settings-column">
+      <div class="settings-section">
+        <h3>Voice Settings</h3>
+        <div class="settings-item">
+          <label for="voiceSelect">Voice:</label>
+          <select id="voiceSelect">
+            <option value="default">Default</option>
+            <option value="voice1">Voice 1</option>
+            <option value="voice2">Voice 2</option>
+          </select>
+        </div>
+        <div class="settings-item">
+          <label for="voiceSpeed">Voice Speed:</label>
+          <select id="voiceSpeed">
+            <option value="0.8">Slow</option>
+            <option value="1.0" selected>Normal</option>
+            <option value="1.2">Fast</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="settings-section">
+        <h3>Language Settings</h3>
+        <div class="settings-item">
+          <label for="language">Language:</label>
+          <select id="language">
+            <option value="en-US" selected>English (US)</option>
+            <option value="es-ES">Spanish</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div class="settings-column">
+      <div class="settings-section">
+        <h3>Interface Settings</h3>
+        <div class="settings-item">
+          <label for="theme">Theme:</label>
+          <select id="theme">
+            <option value="light" selected>Light</option>
+            <option value="dark">Dark</option>
+            <option value="auto">Auto (System)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="settings-section">
+        <h3>Notification Settings</h3>
+        <div class="settings-item">
+          <label for="notificationSound">Notification Sound:</label>
+          <select id="notificationSound">
+            <option value="default" selected>Default</option>
+            <option value="silent">Silent</option>
+            <option value="subtle">Subtle</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="settings-footer">
+    <button id="saveSettingsBtn" class="btn-save-settings">Save Settings</button>
+  </div>
+</div>
+
+<!-- Scheduler Modal -->
+<div id="schedulerModal" class="scheduler-modal">
+  <div class="scheduler-modal-header">
+    <h2 class="scheduler-modal-title">Scheduler</h2>
+    <button id="closeSchedulerBtn" class="scheduler-modal-close">&times;</button>
+  </div>
+  
+  <div class="scheduler-tabs">
+    <button id="calendarTab" class="scheduler-tab active">Calendar</button>
+    <button id="upcomingTab" class="scheduler-tab">Upcoming</button>
+  </div>
+  
+  <div class="scheduler-modal-body">
+    <!-- Left Column (Calendar) -->
+    <div id="calendarColumn" class="scheduler-column active">
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <div class="calendar-nav">
+            <button id="prevMonth" class="calendar-btn"><i class="fas fa-chevron-left"></i></button>
+            <h3 class="current-month">May 2025</h3>
+            <button id="nextMonth" class="calendar-btn"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="calendar-view-toggle">
+            <button class="view-btn active">Month</button>
+            <button class="view-btn">Week</button>
+            <button class="view-btn">Day</button>
+          </div>
+        </div>
+        
+        <div class="calendar-grid">
+          <!-- Days of week headers -->
+          <div class="calendar-day-header">Sun</div>
+          <div class="calendar-day-header">Mon</div>
+          <div class="calendar-day-header">Tue</div>
+          <div class="calendar-day-header">Wed</div>
+          <div class="calendar-day-header">Thu</div>
+          <div class="calendar-day-header">Fri</div>
+          <div class="calendar-day-header">Sat</div>
+          
+          <!-- Calendar days will be generated by JavaScript -->
+        </div>
+      </div>
+      
+      <div class="scheduler-section">
+        <h3>Create New Event <button id="quickAddBtn">Quick Add</button></h3>
+        <form id="newEventForm">
+          <div class="scheduler-form-group">
+            <label for="eventTitle">Event Title</label>
+            <input type="text" id="eventTitle" class="scheduler-form-control" placeholder="Enter event title">
+          </div>
+          
+          <div class="scheduler-form-row">
+            <div class="scheduler-form-group">
+              <label for="eventDate">Date</label>
+              <input type="date" id="eventDate" class="scheduler-form-control">
+            </div>
+            
+            <div class="scheduler-form-group">
+              <label for="eventType">Type</label>
+              <select id="eventType" class="scheduler-form-control">
+                <option value="meeting">Meeting</option>
+                <option value="travel">Travel</option>
+                <option value="personal">Personal</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="scheduler-form-row">
+            <div class="scheduler-form-group">
+              <label for="eventStart">Start Time</label>
+              <input type="time" id="eventStart" class="scheduler-form-control">
+            </div>
+            
+            <div class="scheduler-form-group">
+              <label for="eventEnd">End Time</label>
+              <input type="time" id="eventEnd" class="scheduler-form-control">
+            </div>
+          </div>
+          
+          <div class="scheduler-form-group">
+            <label for="eventLocation">Location</label>
+            <input type="text" id="eventLocation" class="scheduler-form-control" placeholder="Enter location">
+          </div>
+          
+          <div class="scheduler-form-group">
+            <label for="eventDescription">Description</label>
+            <textarea id="eventDescription" class="scheduler-form-control" rows="3" placeholder="Enter description"></textarea>
+          </div>
+          
+          <button type="submit" class="schedule-event-btn">Schedule Event</button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Right Column (Upcoming Events) -->
+    <div id="upcomingColumn" class="scheduler-column">
+      <div class="scheduler-section">
+        <h3>Upcoming Events</h3>
+        <ul class="event-list">
+          <!-- Events will be dynamically populated -->
+          <li class="event-item">
+            <div class="event-indicator meeting"></div>
+            <div class="event-content">
+              <h4 class="event-title">Product Team Meeting</h4>
+              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 21, 2025, 10:00 AM - 11:30 AM</div>
+              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> Conference Room A</div>
+            </div>
+          </li>
+          <li class="event-item">
+            <div class="event-indicator travel"></div>
+            <div class="event-content">
+              <h4 class="event-title">Flight to New York</h4>
+              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 23, 2025, 2:45 PM - 6:20 PM</div>
+              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> SFO to JFK, Flight AA123</div>
+            </div>
+          </li>
+          <li class="event-item">
+            <div class="event-indicator personal"></div>
+            <div class="event-content">
+              <h4 class="event-title">Dentist Appointment</h4>
+              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 25, 2025, 9:00 AM - 10:00 AM</div>
+              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> Dr. Smith's Office</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="scheduler-section">
+        <h3>Travel Plans</h3>
+        <ul class="event-list">
+          <li class="event-item">
+            <div class="event-indicator travel"></div>
+            <div class="event-content">
+              <h4 class="event-title">Flight to New York</h4>
+              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 23, 2025, 2:45 PM - 6:20 PM</div>
+              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> SFO to JFK, Flight AA123</div>
+            </div>
+          </li>
+          <li class="event-item">
+            <div class="event-indicator travel"></div>
+            <div class="event-content">
+              <h4 class="event-title">Hotel Check-in</h4>
+              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 23, 2025, 8:00 PM</div>
+              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> Hilton Midtown, New York</div>
+            </div>
+          </li>
+          <li class="event-item">
+            <div class="event-indicator travel"></div>
+            <div class="event-content">
+              <h4 class="event-title">Return Flight</h4>
+              <div class="event-time"><i class="fas fa-clock event-icon"></i> May 26, 2025, 3:30 PM - 7:15 PM</div>
+              <div class="event-location"><i class="fas fa-map-marker-alt event-icon"></i> JFK to SFO, Flight AA456</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="scheduler-section">
+        <h3>Pending Actions <button id="markCompleteBtn">Mark Complete</button></h3>
+        <ul class="event-list">
+          <li class="event-item">
+            <div class="event-indicator"></div>
+            <div class="event-content">
+              <h4 class="event-title">Complete Project Presentation</h4>
+              <div class="event-time"><i class="fas fa-clock event-icon"></i> Due: May 22, 2025</div>
+            </div>
+          </li>
+          <li class="event-item">
+            <div class="event-indicator"></div>
+            <div class="event-content">
+              <h4 class="event-title">Book Hotel for Conference</h4>
+              <div class="event-time"><i class="fas fa-clock event-icon"></i> Due: May 21, 2025</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <script>
+        window._env_ = {
+          apiKey: "10101101010111010100101",
+          authDomain: "example.com",
+          databaseURL: "example.com",
+          projectId: "this_project",
+          storageBucket: "this_bucket",
+          messagingSenderId: "10101101010111010100101",
+          appId: "10101101010111010100101",
+          measurementId: "G-10101101010111010100101"
+        }
+    </script>
+    <script src="assets/js/bundle.js"></script>
+    <script src="assets/js/animations.js"></script>
+    <script src="assets/js/language.js"></script>
+    <script src="assets/js/interaction.js"></script>
+    
+    <!-- Meeting-related scripts -->
+    <script src="assets/js/pashaHelper.js"></script>
+    <script src="assets/js/pashaSecondary.js"></script>
+    <script type="module" src="assets/js/meetingController.js"></script>
+    <script src="assets/js/schedulerController.js"></script>
+    
+    <!-- Initialize controllers after ensuring scripts are loaded -->
+    <script type="module">
+        import { PushController } from './assets/js/push_controller.js';
+        import { MeetingController } from './assets/js/meetingController.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const botLoad = document.querySelector('.bot_load');
+            const startChatButton = document.getElementById('startChatButton');
+
+            // Check if microphone was previously enabled
+            if (localStorage.getItem('microphoneEnabled') === 'true') {
+                botLoad.style.display = 'none';
+                initializeControllers();
+            } else {
+                startChatButton.addEventListener('click', async () => {
+                    try {
+                        await navigator.mediaDevices.getUserMedia({ audio: true });
+                        localStorage.setItem('microphoneEnabled', 'true');
+                        botLoad.style.display = 'none';
+                        initializeControllers();
+                    } catch (error) {
+                        console.error('Error accessing microphone:', error);
+                        alert('Microphone access is required for this application.');
+                    }
+                });
+            }
+
+            function initializeControllers() {
+                // Initialize Firebase
+                const db = firebase.firestore();
+                
+                // Initialize controllers
+                const meetingController = new MeetingController(db);
+                const pushController = new PushController();
+                
+                // Initialize scheduler controller
+                try {
+                    // Try using the global definition first
+                    if (typeof SchedulerController === 'function') {
+                        window.schedulerController = new SchedulerController();
+                    } 
+                    // Fall back to window-defined version if direct reference fails
+                    else if (typeof window.SchedulerController === 'function') {
+                        window.schedulerController = new window.SchedulerController();
+                    } 
+                    else {
+                        console.error('SchedulerController not defined');
+                    }
+                } catch (e) {
+                    console.error('Error initializing SchedulerController:', e);
+                }
+                
+                meetingController.init();
+                pushController.init();
+                // Don't initialize scheduler until it's opened
+                
+                // Initialize clear chat functionality
+                initializeClearChat();
+            }
+            
+            function initializeClearChat() {
+                const clearChatBtn = document.getElementById('clear-chat-btn');
+                const chatMessages = document.getElementById('chat-messages');
+                
+                if (clearChatBtn && chatMessages) {
+                    clearChatBtn.addEventListener('click', function() {
+                        // Confirm before clearing
+                        if (confirm('Are you sure you want to clear all chat messages?')) {
+                            // Clear all child elements except the clear button itself
+                            const elements = chatMessages.children;
+                            for (let i = elements.length - 1; i >= 0; i--) {
+                                if (elements[i].id !== 'clear-chat-btn') {
+                                    chatMessages.removeChild(elements[i]);
+                                }
+                            }
+                            
+                            // Optional: Trigger any cleanup needed by controllers
+                            console.log('Chat cleared successfully');
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
