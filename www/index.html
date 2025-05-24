@@ -430,6 +430,8 @@
     <script type="module">
         import { ElevenLabsController } from './assets/js/elevenlabs_controller.js';
         import { MeetingController } from './assets/js/meetingController.js';
+        import { ContextManager } from './assets/js/context_manager.js';
+        import { SettingsController } from './assets/js/settings_controller.js';
         
         document.addEventListener('DOMContentLoaded', () => {
             const botLoad = document.querySelector('.bot_load');
@@ -453,40 +455,57 @@
                 });
             }
 
-            function initializeControllers() {
-                // Initialize Firebase
-                const db = firebase.firestore();
-                
-                // Initialize controllers
-                const meetingController = new MeetingController(db);
-                const elevenLabsController = new ElevenLabsController();
-                
-                // Make controller globally accessible for debugging
-                window.elevenLabsController = elevenLabsController;
-                
-                // Initialize scheduler controller
+            async function initializeControllers() {
                 try {
-                    // Try using the global definition first
-                    if (typeof SchedulerController === 'function') {
-                        window.schedulerController = new SchedulerController();
-                    } 
-                    // Fall back to window-defined version if direct reference fails
-                    else if (typeof window.SchedulerController === 'function') {
-                        window.schedulerController = new window.SchedulerController();
-                    } 
-                    else {
-                        console.error('SchedulerController not defined');
+                    // Initialize Firebase
+                    const db = firebase.firestore();
+                    
+                    // Initialize Context Manager first
+                    console.log('🧠 Initializing Context Manager...');
+                    const contextManager = new ContextManager(db);
+                    
+                    // Initialize Settings Controller with Context Manager
+                    console.log('⚙️ Initializing Settings Controller...');
+                    const settingsController = new SettingsController(contextManager);
+                    
+                    // Initialize other controllers
+                    const meetingController = new MeetingController(db);
+                    const elevenLabsController = new ElevenLabsController(contextManager);
+                    
+                    // Make controllers globally accessible
+                    window.contextManager = contextManager;
+                    window.settingsController = settingsController;
+                    window.elevenLabsController = elevenLabsController;
+                    window.meetingController = meetingController;
+                    
+                    // Initialize scheduler controller
+                    try {
+                        if (typeof SchedulerController === 'function') {
+                            window.schedulerController = new SchedulerController();
+                        } else if (typeof window.SchedulerController === 'function') {
+                            window.schedulerController = new window.SchedulerController();
+                        } else {
+                            console.error('SchedulerController not defined');
+                        }
+                    } catch (e) {
+                        console.error('Error initializing SchedulerController:', e);
                     }
-                } catch (e) {
-                    console.error('Error initializing SchedulerController:', e);
+                    
+                    // Initialize all controllers
+                    await meetingController.init();
+                    await elevenLabsController.init();
+                    
+                    // Initialize clear chat functionality
+                    initializeClearChat();
+                    
+                    // Setup settings button handler
+                    setupSettingsButton();
+                    
+                    console.log('✅ All controllers initialized successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Error initializing controllers:', error);
                 }
-                
-                meetingController.init();
-                elevenLabsController.init();
-                // Don't initialize scheduler until it's opened
-                
-                // Initialize clear chat functionality
-                initializeClearChat();
             }
             
             function initializeClearChat() {
@@ -495,7 +514,6 @@
                 
                 if (clearChatBtn && chatMessages) {
                     clearChatBtn.addEventListener('click', function() {
-                        // Confirm before clearing
                         if (confirm('Are you sure you want to clear all chat messages?')) {
                             // Clear all child elements except the clear button itself
                             const elements = chatMessages.children;
@@ -505,8 +523,20 @@
                                 }
                             }
                             
-                            // Optional: Trigger any cleanup needed by controllers
                             console.log('Chat cleared successfully');
+                        }
+                    });
+                }
+            }
+            
+            function setupSettingsButton() {
+                const settingsBtn = document.getElementById('settingsModeBtn');
+                if (settingsBtn) {
+                    settingsBtn.addEventListener('click', () => {
+                        if (window.settingsController) {
+                            window.settingsController.openModal();
+                        } else {
+                            console.error('Settings controller not initialized');
                         }
                     });
                 }

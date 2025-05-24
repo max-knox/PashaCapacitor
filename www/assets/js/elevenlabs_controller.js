@@ -4,10 +4,12 @@ const SYSTEM_PROMPT = "You are Pasha, an AI assistant.";
 const FIRST_MESSAGE = "Pasha is ready. Click the Talk button to start a conversation!";
 
 export class ElevenLabsController {
-    constructor() {
+    constructor(contextManager = null) {
         this.conversation = null;
         this.isConversationActive = false;
         this.agentId = null;
+        this.contextManager = contextManager; // Store context manager reference
+        this.currentConversationId = null; // Track current conversation
         
         this.state = {
             isConnected: false,
@@ -309,6 +311,11 @@ export class ElevenLabsController {
             if (this.conversation) {
                 console.log('🛑 Ending conversation...');
                 
+                // Save final context if context manager is available
+                if (this.contextManager && this.currentConversationId) {
+                    await this.contextManager.saveContext();
+                }
+                
                 // Use the correct ElevenLabs SDK method
                 if (typeof this.conversation.endSession === 'function') {
                     await this.conversation.endSession();
@@ -320,6 +327,7 @@ export class ElevenLabsController {
             }
 
             this.isConversationActive = false;
+            this.currentConversationId = null;
             this.updateVoiceStatus('Ready');
             this.elements.talkButton.textContent = 'TALK';
             this.elements.talkButton.disabled = false;
@@ -711,6 +719,11 @@ export class ElevenLabsController {
             this.endConversation();
         }
         
+        // Save context before cleanup
+        if (this.contextManager) {
+            this.contextManager.cleanup();
+        }
+        
         this.state = {
             isConnected: false,
             isAgentSpeaking: false,
@@ -718,5 +731,29 @@ export class ElevenLabsController {
             currentMode: 'idle',
             networkStatus: 'online'
         };
+    }
+
+    /**
+     * Utility method to generate conversation ID
+     */
+    generateConversationId() {
+        return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    /**
+     * Set context manager (for dependency injection)
+     */
+    setContextManager(contextManager) {
+        this.contextManager = contextManager;
+    }
+
+    /**
+     * Get current conversation context summary
+     */
+    getContextSummary() {
+        if (this.contextManager) {
+            return this.contextManager.getContextSummary();
+        }
+        return '';
     }
 }

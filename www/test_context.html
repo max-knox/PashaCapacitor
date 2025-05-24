@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Context Management Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        button { margin: 5px; padding: 8px 16px; }
+    </style>
+</head>
+<body>
+    <h1>Context Management System Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="testResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Manual Tests</h2>
+        <button onclick="testContextManager()">Test Context Manager</button>
+        <button onclick="testSettingsController()">Test Settings Controller</button>
+        <button onclick="addSampleContext()">Add Sample Context</button>
+        <button onclick="exportTestData()">Export Test Data</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Context Data</h2>
+        <pre id="contextData">Loading...</pre>
+    </div>
+
+    <script type="module">
+        import { ContextManager } from '../assets/js/context_manager.js';
+        import { SettingsController } from '../assets/js/settings_controller.js';
+        
+        // Mock Firestore for testing
+        const mockFirestore = {
+            collection: (name) => ({
+                doc: (id) => ({
+                    set: async (data) => {
+                        console.log(`Mock: Set ${name}/${id}:`, data);
+                        return Promise.resolve();
+                    },
+                    delete: async () => {
+                        console.log(`Mock: Delete ${name}/${id}`);
+                        return Promise.resolve();
+                    }
+                }),
+                orderBy: () => ({
+                    limit: () => ({
+                        get: async () => ({
+                            forEach: () => {},
+                            docs: []
+                        })
+                    })
+                }),
+                get: async () => ({
+                    docs: [],
+                    forEach: () => {}
+                })
+            })
+        };
+        
+        // Initialize managers
+        const contextManager = new ContextManager(mockFirestore);
+        const settingsController = new SettingsController(contextManager);
+        
+        // Make globally available
+        window.contextManager = contextManager;
+        window.settingsController = settingsController;
+        window.testResults = [];
+        
+        // Test functions
+        window.testContextManager = async () => {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div>Testing Context Manager...</div>';
+            
+            try {
+                // Test adding context
+                const message = {
+                    type: 'user_transcript',
+                    text: 'Hello, this is a test message',
+                    source: 'user'
+                };
+                
+                const contextItem = await contextManager.addContext(message, 'test_conv_123');
+                
+                if (contextItem) {
+                    results.innerHTML += '<div class="success">✅ Context added successfully</div>';
+                } else {
+                    results.innerHTML += '<div class="error">❌ Failed to add context</div>';
+                }
+                
+                // Test getting contexts
+                const contexts = await contextManager.getAllContexts();
+                results.innerHTML += `<div class="success">✅ Retrieved ${contexts.length} contexts</div>`;
+                
+                // Test stats
+                const stats = contextManager.getStats();
+                results.innerHTML += `<div class="success">✅ Stats: ${JSON.stringify(stats)}</div>`;
+                
+                updateContextDisplay();
+                
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        };
+        
+        window.testSettingsController = () => {
+            const results = document.getElementById('testResults');
+            results.innerHTML += '<div>Testing Settings Controller...</div>';
+            
+            try {
+                if (settingsController.isInitialized) {
+                    results.innerHTML += '<div class="success">✅ Settings Controller initialized</div>';
+                } else {
+                    results.innerHTML += '<div class="error">❌ Settings Controller not initialized</div>';
+                }
+                
+                // Test settings save/load
+                const testSettings = { theme: 'dark', language: 'en-US' };
+                localStorage.setItem('pasha_settings', JSON.stringify(testSettings));
+                
+                const loaded = settingsController.getStoredSettings();
+                if (loaded.theme === 'dark') {
+                    results.innerHTML += '<div class="success">✅ Settings save/load working</div>';
+                } else {
+                    results.innerHTML += '<div class="error">❌ Settings save/load failed</div>';
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        };
+        
+        window.addSampleContext = async () => {
+            const sampleMessages = [
+                { type: 'user_transcript', text: 'What is the weather like today?', source: 'user' },
+                { type: 'agent_response', text: 'I can help you check the weather. What location would you like me to check?', source: 'agent' },
+                { type: 'user_transcript', text: 'Check the weather in San Francisco', source: 'user' },
+                { type: 'agent_response', text: 'The weather in San Francisco is currently 72°F and sunny.', source: 'agent' }
+            ];
+            
+            for (const message of sampleMessages) {
+                await contextManager.addContext(message, 'sample_conversation');
+            }
+            
+            updateContextDisplay();
+            document.getElementById('testResults').innerHTML += '<div class="success">✅ Sample context added</div>';
+        };
+        
+        window.exportTestData = async () => {
+            try {
+                const contexts = await contextManager.getAllContexts();
+                const blob = new Blob([JSON.stringify(contexts, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'test-context-data.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                document.getElementById('testResults').innerHTML += '<div class="success">✅ Test data exported</div>';
+            } catch (error) {
+                document.getElementById('testResults').innerHTML += `<div class="error">❌ Export failed: ${error.message}</div>`;
+            }
+        };
+        
+        async function updateContextDisplay() {
+            try {
+                const contexts = await contextManager.getAllContexts();
+                const stats = contextManager.getStats();
+                
+                document.getElementById('contextData').textContent = JSON.stringify({
+                    stats,
+                    contexts
+                }, null, 2);
+            } catch (error) {
+                document.getElementById('contextData').textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateContextDisplay();
+        });
+    </script>
+</body>
+</html>
