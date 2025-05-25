@@ -45,7 +45,10 @@ class MeetingModeController {
             this.ui.copyMeetingTranscriptBtn.addEventListener('click', () => this.copyTranscriptToClipboard());
         }
         // Listen for ElevenLabs client tool calls
-        window.addEventListener('elevenlabs-tool-call', (event) => this.handleElevenLabsToolCall(event));
+        window.addEventListener('elevenlabs-tool-call', (event) => {
+            console.log('TOOL CALL EVENT RECEIVED:', event);
+            this.handleElevenLabsToolCall(event);
+        });
         
         // Listen for ElevenLabs conversation events to auto-pause/resume
         window.addEventListener('elevenlabs-conversation-started', () => this.pauseMeeting());
@@ -567,15 +570,47 @@ class MeetingModeController {
         const { parameters } = event.detail;
         let output = { success: false, message: 'Unknown action or meeting not active.' };
 
-        if (!this.isMeetingActive || !this.meetingId) {
-            output.message = 'No active meeting to manage.';
-            this.dispatchToolResponse(this.elevenLabsToolCallName, output);
-            return;
-        }
-
         console.log('ElevenLabs Tool Call Received:', parameters);
 
         try {
+            // First, find the active meeting in Firebase
+            let meetingId = this.meetingId; // Try local first
+            let meetingActive = this.isMeetingActive;
+            
+            // If no local meeting or we need to verify, check Firebase
+            if (!meetingId || parameters.findActiveMeeting) {
+                console.log('Searching for active meeting in Firebase...');
+                const activeMeetingQuery = await this.firestore.collection('meetingCapture')
+                    .where('active', '==', true)
+                    .orderBy('startTime', 'desc')
+                    .limit(1)
+                    .get();
+                
+                if (!activeMeetingQuery.empty) {
+                    const activeMeetingDoc = activeMeetingQuery.docs[0];
+                    meetingId = activeMeetingDoc.id;
+                    meetingActive = true;
+                    console.log('Found active meeting in Firebase:', meetingId);
+                    
+                    // Update local state if different
+                    if (meetingId !== this.meetingId) {
+                        this.meetingId = meetingId;
+                        console.log('Updated local meeting ID to match Firebase');
+                    }
+                } else {
+                    console.log('No active meeting found in Firebase');
+                    output.message = 'No active meeting found. Please start a meeting first.';
+                    this.dispatchToolResponse(this.elevenLabsToolCallName, output);
+                    return;
+                }
+            }
+
+            if (!meetingActive || !meetingId) {
+                output.message = 'No active meeting to manage.';
+                this.dispatchToolResponse(this.elevenLabsToolCallName, output);
+                return;
+            }
+
             const action = parameters.action;
             let value = parameters.value; // Common value parameter - now always a string
             const itemId = parameters.itemId; // For updating specific items
@@ -613,23 +648,23 @@ class MeetingModeController {
 
             switch (action) {
                 case 'updateTitle':
-                    await this.updateMeetingField('title', parsedValue);
+                    await this.updateMeetingField('title', parsedValue, meetingId);
                     if (this.ui.meetingCardTitle) this.ui.meetingCardTitle.textContent = parsedValue;
                     output = { success: true, message: `Meeting title updated to: ${parsedValue}.` };
                     break;
                     
                 case 'setDescription':
-                    await this.updateMeetingField('description', parsedValue);
+                    await this.updateMeetingField('description', parsedValue, meetingId);
                     output = { success: true, message: 'Meeting description updated.' };
                     break;
                     
                 case 'setPurpose':
-                    await this.updateMeetingField('purpose', parsedValue);
+                    await this.updateMeetingField('purpose', parsedValue, meetingId);
                     output = { success: true, message: 'Meeting purpose updated.' };
                     break;
                     
                 case 'addMember':
-                    await this.addMeetingArrayItem('members', parsedValue);
+                    await this.addMeetingArrayItem('members', parsedValue, meetingId);
                     output = { success: true, message: `Member '${parsedValue}' added.` };
                     break;
                     
@@ -642,7 +677,7 @@ class MeetingModeController {
                             assignedTo: parsedValue.assignedTo || '',
                             dueDate: parsedValue.dueDate || null
                         };
-                        await this.addMeetingArrayItem('actionItems', newItem);
+                        await this.addMeetingArrayItem('actionItems', newItem, meetingId);
                         output = { success: true, message: `Action item '${newItem.text}' added.` };
                     } else {
                         output.message = 'Invalid value for addActionItem. Expects a JSON object with at least a text property.';
@@ -657,7 +692,7 @@ class MeetingModeController {
                             status: parsedValue.status || 'pending',
                             notes: parsedValue.notes || ''
                         };
-                        await this.addMeetingArrayItem('deliverables', newDeliverable);
+                        await this.addMeetingArrayItem('deliverables', newDeliverable, meetingId);
                         output = { success: true, message: `Deliverable '${newDeliverable.text}' added.` };
                     } else {
                         output.message = 'Invalid value for addDeliverable. Expects a JSON object with at least a text property.';
@@ -668,7 +703,7 @@ class MeetingModeController {
                 case 'updateDeliverableStatus':
                     if (typeof itemId === 'string' && typeof itemStatus === 'string') {
                         const arrayName = action === 'updateActionItemStatus' ? 'actionItems' : 'deliverables';
-                        await this.updateItemStatusInArray(arrayName, itemId, itemStatus);
+                        await this.updateItemStatusInArray(arrayName, itemId, itemStatus, meetingId);
                         output = { success: true, message: `${arrayName.slice(0, -1)} '${itemId}' status updated to '${itemStatus}'.` };
                     } else {
                         output.message = 'Invalid parameters for updating item status. Requires itemId and itemStatus.';
@@ -676,12 +711,12 @@ class MeetingModeController {
                     break;
                     
                 case 'setSummary':
-                    await this.updateMeetingField('summary', parsedValue);
+                    await this.updateMeetingField('summary', parsedValue, meetingId);
                     output = { success: true, message: 'Meeting summary updated.' };
                     break;
                     
                 case 'setFollowUp': 
-                    await this.updateMeetingField('isFollowUp', parsedValue);
+                    await this.updateMeetingField('isFollowUp', parsedValue, meetingId);
                     output = { success: true, message: `Meeting follow-up status set to: ${parsedValue}.` };
                     break;
                     
@@ -697,25 +732,28 @@ class MeetingModeController {
         this.dispatchToolResponse(this.elevenLabsToolCallName, output);
     }
 
-    async updateMeetingField(fieldName, value) {
-        if (!this.isMeetingActive || !this.meetingId) throw new Error('Meeting not active.');
+    async updateMeetingField(fieldName, value, meetingId = null) {
+        const id = meetingId || this.meetingId;
+        if (!id) throw new Error('No meeting ID provided.');
         const update = {};
         update[fieldName] = value;
-        await this.firestore.collection('meetingCapture').doc(this.meetingId).update(update);
-        console.log(`Meeting field '${fieldName}' updated in Firestore.`);
+        await this.firestore.collection('meetingCapture').doc(id).update(update);
+        console.log(`Meeting field '${fieldName}' updated in Firestore for meeting: ${id}`);
     }
 
-    async addMeetingArrayItem(arrayName, item) {
-        if (!this.isMeetingActive || !this.meetingId) throw new Error('Meeting not active.');
+    async addMeetingArrayItem(arrayName, item, meetingId = null) {
+        const id = meetingId || this.meetingId;
+        if (!id) throw new Error('No meeting ID provided.');
         const update = {};
         update[arrayName] = firebase.firestore.FieldValue.arrayUnion(item);
-        await this.firestore.collection('meetingCapture').doc(this.meetingId).update(update);
-        console.log(`Item added to '${arrayName}' in Firestore.`);
+        await this.firestore.collection('meetingCapture').doc(id).update(update);
+        console.log(`Item added to '${arrayName}' in Firestore for meeting: ${id}`);
     }
 
-    async updateItemStatusInArray(arrayName, itemId, newStatus) {
-        if (!this.isMeetingActive || !this.meetingId) throw new Error('Meeting not active.');
-        const meetingRef = this.firestore.collection('meetingCapture').doc(this.meetingId);
+    async updateItemStatusInArray(arrayName, itemId, newStatus, meetingId = null) {
+        const id = meetingId || this.meetingId;
+        if (!id) throw new Error('No meeting ID provided.');
+        const meetingRef = this.firestore.collection('meetingCapture').doc(id);
 
         await this.firestore.runTransaction(async (transaction) => {
             const meetingDoc = await transaction.get(meetingRef);

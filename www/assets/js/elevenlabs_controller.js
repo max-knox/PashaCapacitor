@@ -184,6 +184,13 @@ export class ElevenLabsController {
                     this.handleMessage(message);
                 },
                 
+                onToolCall: (toolCall) => {
+                    console.log('🔧 ElevenLabs: Tool call received', toolCall);
+                    window.dispatchEvent(new CustomEvent('elevenlabs-tool-call', {
+                        detail: toolCall
+                    }));
+                },
+                
                 onError: (error) => {
                     console.error('❌ ElevenLabs: Error', error);
                     this.handleError(error);
@@ -370,6 +377,15 @@ export class ElevenLabsController {
 
     handleMessage(message) {
         console.log('📨 Message received:', message);
+        
+        // Check if this is a tool call
+        if (message.type === 'tool_call' || message.tool_call || message.tools) {
+            console.log('🔧 TOOL CALL DETECTED IN MESSAGE:', message);
+            // Dispatch tool call event
+            window.dispatchEvent(new CustomEvent('elevenlabs-tool-call', {
+                detail: message.tool_call || message
+            }));
+        }
         
         // Handle different message types based on ElevenLabs documentation
         if (message.type === 'user_transcript' || message.type === 'user_transcription') {
