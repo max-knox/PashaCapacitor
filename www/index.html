@@ -17,8 +17,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/elevenlabs.css"> <!-- Kept for ElevenLabs specific styling, review if conflicts arise -->
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
 
     <link href="https://fonts.googleapis.com/css2?family=Amaranth:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js" integrity="sha256-eTyxS0rkjpLEo16uXTS0uVCS4815lc40K2iVpWDvdSY=" crossorigin="anonymous"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script> <!-- Included for compatibility with existing JS that might use it -->
+    <script src="https://unpkg.com/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js"></script>
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <style>
         /* Custom scrollbar for chat (optional, but nice) */
@@ -138,21 +148,8 @@
           <button id="clear-chat-btn" class="clear-chat-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-full text-xs shadow-lg transition duration-300" title="Clear Chat" aria-label="Clear chat messages">
             <i class="fas fa-trash-alt"></i>
           </button>
-          <div class="msg left-msg mb-4 flex">
-            <div class="msg-img w-12 h-12 rounded-full bg-pasha-purple flex items-center justify-center text-white text-xl mr-3">P</div>
-            <div class="msg-bubble bg-gray-200 dark:bg-pasha-gray p-3 rounded-lg shadow max-w-xs lg:max-w-md">
-              <div class="msg-info text-xs text-gray-500 dark:text-gray-400 mb-1">Pasha <span class="ml-2">10:00 AM</span></div>
-              <div class="msg-text text-gray-800 dark:text-gray-200">Hi, welcome to Pasha! How can I help you today?</div>
-            </div>
-          </div>
-          <div class="msg right-msg mb-4 flex flex-row-reverse">
-            <div class="msg-img w-12 h-12 rounded-full bg-pasha-blue flex items-center justify-center text-white text-xl ml-3">U</div>
-            <div class="msg-bubble bg-pasha-blue text-white p-3 rounded-lg shadow max-w-xs lg:max-w-md">
-              <div class="msg-info text-xs text-pasha-blue-lighter dark:text-gray-300 mb-1 text-right">You <span class="mr-2">10:01 AM</span></div>
-              <div class="msg-text">Hello Pasha! I need some assistance.</div>
-            </div>
-          </div>
-           </main>
+          <!-- Chat messages will be dynamically inserted here by JavaScript -->
+        </main>
       </div>
     </div>
   </div>
@@ -412,27 +409,46 @@
     <script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-storage.js"></script>
 
     <script>
-        // Mock Firebase config - replace with your actual config
+        // Updated Firebase config to use environment variables or placeholders
         const firebaseConfig = {
-          apiKey: "YOUR_API_KEY",
-          authDomain: "YOUR_AUTH_DOMAIN",
-          databaseURL: "YOUR_DATABASE_URL",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_STORAGE_BUCKET",
-          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-          appId: "YOUR_APP_ID",
-          measurementId: "YOUR_MEASUREMENT_ID"
+          apiKey: "YOUR_API_KEY", // Replace with your actual Firebase API Key or use environment variables
+          authDomain: "YOUR_AUTH_DOMAIN", // Replace with your actual Firebase Auth Domain
+          databaseURL: "YOUR_DATABASE_URL", // Replace with your actual Firebase Database URL
+          projectId: "YOUR_PROJECT_ID", // Replace with your actual Firebase Project ID
+          storageBucket: "YOUR_STORAGE_BUCKET", // Replace with your actual Firebase Storage Bucket
+          messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Replace with your actual Firebase Messaging Sender ID
+          appId: "YOUR_APP_ID", // Replace with your actual Firebase App ID
+          measurementId: "YOUR_MEASUREMENT_ID" // Replace with your actual Firebase Measurement ID
         };
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        // It's good practice to check if firestore is available
-        // const db = firebase.firestore ? firebase.firestore() : null;
-        // if (!db) console.error("Firestore not initialized");
+        if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+            firebase.initializeApp(firebaseConfig);
+        } else {
+            console.error('Firebase SDK not loaded. Ensure firebase-app.js is included before this script.');
+        }
     </script>
 
+    <script src="assets/js/bundle.js"></script>
+    <script src="assets/js/animations.js"></script>
+    <script src="assets/js/language.js"></script>
+    <script src="assets/js/interaction.js"></script>
+    <script src="assets/js/pashaHelper.js"></script>
+    <script src="assets/js/pashaSecondary.js"></script>
+    <script type="module" src="assets/js/meetingController.js"></script>
+    <script src="assets/js/schedulerController.js"></script>
+    <script type="module" src="assets/js/settings_controller.js"></script>
+    <script type="module" src="assets/js/elevenlabs_controller.js"></script>
+    <script type="module" src="assets/js/context_manager.js"></script>
+    <script type="module" src="assets/js/push_controller.js"></script> 
+
     <script type="module">
-        // import { PushController } from './assets/js/push_controller.js'; // Ensure this path is correct
-        // import { MeetingController } from './assets/js/meetingController.js'; // Ensure this path is correct
+        import { ElevenLabsController } from './assets/js/elevenlabs_controller.js';
+        import { MeetingController } from './assets/js/meetingController.js';
+        import { ContextManager } from './assets/js/context_manager.js';
+        import { SettingsController } from './assets/js/settings_controller.js';
+        import { PushController } from './assets/js/push_controller.js';
+        // Ensure schedulerController.js is loaded, it might not be a module
+        // If SchedulerController is a global, it will be available on window
 
         document.addEventListener('DOMContentLoaded', () => {
             const botLoad = document.querySelector('.bot_load');
@@ -463,147 +479,143 @@
                             initializeControllers();
                         } catch (error) {
                             console.error('Error accessing microphone:', error);
-                            // Replace alert with a custom modal or on-screen message
                             const voiceStatus = document.getElementById('voice-action');
                             if(voiceStatus) voiceStatus.textContent = 'Microphone access denied. Please enable it in browser settings.';
-                            else console.error('Microphone access is required for this application.');
+                            else alert('Microphone access is required for this application.'); // Fallback alert
                         }
                     });
                 } else {
-                     // Fallback if startChatButton isn't on the page (e.g. mic already enabled)
-                    if(botLoad) botLoad.style.display = 'none';
-                    initializeControllers();
+                    if(botLoad) botLoad.style.display = 'none'; // Hide loader if button not found but mic was enabled
+                    initializeControllers(); // Initialize if mic already enabled or no button
                 }
             }
 
-            function initializeControllers() {
-                // Initialize Firebase (already done above, but good to have db instance here)
-                // const db = firebase.firestore(); // Make sure db is initialized
-                
-                // Initialize your controllers here if they are JS classes
-                // Example:
-                // const meetingController = new MeetingController(db);
-                // const pushController = new PushController();
-                // meetingController.init();
-                // pushController.init();
-                
-                console.log("Pasha (Tailwind UI) Initialized");
-                initializeClearChat();
-                initializeModals();
+            async function initializeControllers() {
+                try {
+                    // Ensure Firebase is initialized before accessing firestore
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig); 
+                    }
+                    const db = firebase.firestore();
+
+                    console.log('🧠 Initializing Context Manager...');
+                    const contextManager = new ContextManager(db);
+                    window.contextManager = contextManager;
+
+                    console.log('⚙️ Initializing Settings Controller...');
+                    const settingsController = new SettingsController(contextManager);
+                    window.settingsController = settingsController;
+
+                    console.log('🔊 Initializing ElevenLabs Controller...');
+                    const elevenLabsController = new ElevenLabsController(contextManager);
+                    window.elevenLabsController = elevenLabsController;
+                    await elevenLabsController.init();
+
+                    console.log('📅 Initializing Meeting Controller...');
+                    const meetingController = new MeetingController(db);
+                    window.meetingController = meetingController;
+                    await meetingController.init();
+
+                    console.log('🔔 Initializing Push Controller...');
+                    const pushController = new PushController(); // Assuming no db needed for constructor
+                    window.pushController = pushController;
+                    // await pushController.init(); // If there's an init method
+
+                    // Initialize scheduler controller (assuming it's a global or correctly imported)
+                    if (typeof SchedulerController === 'function') {
+                        window.schedulerController = new SchedulerController();
+                        // window.schedulerController.init(); // If there's an init method
+                    } else {
+                        console.error('SchedulerController not defined or not a function.');
+                    }
+
+                    console.log("Pasha (Tailwind UI) Initialized with all controllers");
+                    initializeClearChat();
+                    initializeModals(); // Ensure this function is defined and handles Tailwind modals
+                    // Add any other initializations from index_previous.html's script block
+
+                } catch (error) {
+                    console.error("Error initializing controllers:", error);
+                }
             }
-            
+
             function initializeClearChat() {
                 const clearChatBtn = document.getElementById('clear-chat-btn');
-                const chatMessages = document.getElementById('chat-messages');
-                
-                if (clearChatBtn && chatMessages) {
-                    clearChatBtn.addEventListener('click', function() {
-                        // Replace confirm with a custom modal for better UX in Capacitor
-                        // For now, using confirm as a placeholder
-                        if (confirm('Are you sure you want to clear all chat messages?')) {
-                            // Clear all child elements except the clear button itself
-                            // A more robust way is to remove all children and re-add the button if it's inside
-                            // Or, better, keep the button outside the scrollable message list.
-                            // For this example, assuming the button is positioned absolutely and not a direct child to be removed.
-                            while (chatMessages.firstChild) {
-                                if(chatMessages.firstChild.id !== 'clear-chat-btn') {
-                                    chatMessages.removeChild(chatMessages.firstChild);
-                                } else {
-                                    // If it's the button itself, break or skip.
-                                    // This logic might need adjustment based on exact DOM.
-                                    // A safer approach is to have a dedicated container for messages.
-                                    break; 
-                                }
-                            }
-                             // Add back a welcome message or leave it empty
-                            const welcomeMsg = document.createElement('div');
-                            welcomeMsg.className = 'text-center text-gray-500 dark:text-gray-400 p-4';
-                            welcomeMsg.textContent = 'Chat cleared. Say something to start!';
-                            // chatMessages.appendChild(welcomeMsg); // Optional: Add a message after clearing
+                const chatMessagesContainer = document.getElementById('chat-messages'); // Ensure this is the correct ID
 
-                            console.log('Chat cleared successfully');
+                if (clearChatBtn && chatMessagesContainer) {
+                    clearChatBtn.addEventListener('click', function() {
+                        // Consider using a Tailwind modal for confirmation instead of window.confirm
+                        if (window.confirm('Are you sure you want to clear the chat?')) {
+                            chatMessagesContainer.innerHTML = ''; // Clear messages
+                            // Optionally, add back the initial Pasha welcome message or a placeholder
+                            // Example: addPashaMessage("Chat cleared. How can I help you now?");
+                            localStorage.removeItem('chatHistory'); // Clear chat history from local storage
+                            console.log('Chat cleared.');
                         }
                     });
+                } else {
+                    console.warn('Clear chat button or chat messages container not found.');
                 }
             }
 
             function initializeModals() {
                 // Settings Modal
+                const settingsModal = document.getElementById('settingsModal');
+                const openSettingsBtn = document.getElementById('settingsModeBtn');
+                const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+                const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+
                 if (openSettingsBtn && settingsModal && closeSettingsBtn) {
                     openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
                     closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
-                    // Optional: Close on clicking outside the modal content
-                    settingsModal.addEventListener('click', (event) => {
-                        if (event.target === settingsModal) {
+                    // Add event listener for saveSettingsBtn if it exists and has functionality
+                    if (saveSettingsBtn) {
+                        saveSettingsBtn.addEventListener('click', () => {
+                            // Implement save settings logic here
+                            console.log('Settings saved (placeholder)');
                             settingsModal.classList.add('hidden');
-                        }
-                    });
+                        });
+                    }
                 }
 
                 // Scheduler Modal
+                const schedulerModal = document.getElementById('schedulerModal');
+                const openSchedulerBtn = document.getElementById('schedulerBtn');
+                const closeSchedulerBtn = document.getElementById('closeSchedulerBtn');
+                const calendarTab = document.getElementById('calendarTab');
+                const upcomingTab = document.getElementById('upcomingTab');
+                const calendarColumn = document.getElementById('calendarColumn');
+                const upcomingColumn = document.getElementById('upcomingColumn');
+
                 if (openSchedulerBtn && schedulerModal && closeSchedulerBtn) {
                     openSchedulerBtn.addEventListener('click', () => schedulerModal.classList.remove('hidden'));
-                    closeSchedulerBtn.addEventListener('click', () => schedulerModal.classList.add('hidden')); // CORRECTED THIS LINE
-                     schedulerModal.addEventListener('click', (event) => {
-                        if (event.target === schedulerModal) {
-                            schedulerModal.classList.add('hidden');
-                        }
-                    });
-                }
+                    closeSchedulerBtn.addEventListener('click', () => schedulerModal.classList.add('hidden'));
 
-                // Scheduler Tabs
-                if (calendarTab && upcomingTab && calendarColumn && upcomingColumn) {
-                    calendarTab.addEventListener('click', () => {
-                        calendarColumn.classList.remove('hidden');
-                        upcomingColumn.classList.add('hidden');
-                        calendarTab.classList.add('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
-                        calendarTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                        upcomingTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                        upcomingTab.classList.remove('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
-                    });
-                    upcomingTab.addEventListener('click', () => {
-                        upcomingColumn.classList.remove('hidden');
-                        // On smaller screens, you might want to hide the calendar column when upcoming is shown
-                        if (window.innerWidth < 1024) { // lg breakpoint
-                           calendarColumn.classList.add('hidden');
-                        } else {
-                           calendarColumn.classList.remove('hidden'); // Keep both visible on larger screens
-                        }
-                        upcomingTab.classList.add('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
-                        upcomingTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                        calendarTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                        calendarTab.classList.remove('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
-                    });
+                    if (calendarTab && upcomingTab && calendarColumn && upcomingColumn) {
+                        calendarTab.addEventListener('click', () => {
+                            calendarColumn.classList.remove('hidden');
+                            upcomingColumn.classList.add('hidden');
+                            calendarTab.classList.add('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
+                            calendarTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                            upcomingTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                            upcomingTab.classList.remove('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
+                        });
+                        upcomingTab.addEventListener('click', () => {
+                            upcomingColumn.classList.remove('hidden');
+                            calendarColumn.classList.add('hidden');
+                            upcomingTab.classList.add('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
+                            upcomingTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                            calendarTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                            calendarTab.classList.remove('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
+                        });
+                    }
                 }
+                // Add logic for other modals if any
             }
 
-            // Handle theme changes (basic example)
-            const themeSelect = document.getElementById('theme');
-            if (themeSelect) {
-                themeSelect.addEventListener('change', (e) => {
-                    const selectedTheme = e.target.value;
-                    if (selectedTheme === 'dark') {
-                        document.documentElement.classList.add('dark');
-                    } else if (selectedTheme === 'light') {
-                        document.documentElement.classList.remove('dark');
-                    } else { // Auto
-                        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                            document.documentElement.classList.add('dark');
-                        } else {
-                            document.documentElement.classList.remove('dark');
-                        }
-                    }
-                });
-                // Apply initial theme based on preference or auto
-                 if (themeSelect.value === 'auto') {
-                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                        document.documentElement.classList.add('dark');
-                    }
-                 } else if (themeSelect.value === 'dark') {
-                    document.documentElement.classList.add('dark');
-                 }
-            }
-
+            // Add any other global event listeners or functions from index_previous.html that are needed
+            // For example, theme switching logic, etc.
 
         });
     </script>
