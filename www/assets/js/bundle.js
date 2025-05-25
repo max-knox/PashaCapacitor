@@ -1,16 +1,22 @@
 // bundle.js
 console.log("Loaded bundle");
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCSYnONep2jhhpP_Ntr-T6ujTDvwOQabqQ",
+// Check if Firebase is already initialized
+if (!firebase.apps.length) {
+  const firebaseConfig = {
+    apiKey: "AIzaSyCSYnONep2jhhpP_Ntr-T6ujTDvwOQabqQ",
     authDomain: "pa-sha.firebaseapp.com",
     projectId: "pa-sha",
     storageBucket: "pa-sha.appspot.com",
     messagingSenderId: "281409245795",
     appId: "1:281409245795:web:8852c2f727c3f401029e56"
-};
-
-firebase.initializeApp(firebaseConfig);
+  };
+  
+  firebase.initializeApp(firebaseConfig);
+  console.log("Firebase initialized in bundle.js");
+} else {
+  console.log("Firebase already initialized");
+}
 
 const storage = firebase.storage();
 const firestore = firebase.firestore();

@@ -237,11 +237,18 @@
             </div>
         </div>
 
-        <div class="tool-call-output w-full flex-grow flex items-center justify-center">
+        <div id="tool-call-output" class="tool-call-output w-full flex-grow flex items-center justify-center">
             <p class="text-gray-400 text-lg">Tool outputs will appear here...</p>
-            <!-- <div class="bg-white/10 p-4 rounded-lg w-full max-w-sm">
-                <h3 class="text-white text-lg font-semibold mb-2">Weather</h3>
-                <p class="text-gray-300">Sunny, 25°C</p>
+            <!-- Placeholder for Meeting Mode Card -->
+            <!-- <div id="meetingModeCard" class="hidden bg-white/10 p-4 rounded-lg w-full max-w-md text-left">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 id="meetingCardTitle" class="text-white text-lg font-semibold">Meeting Title</h3>
+                    <button id="openMeetingModalBtn" class="text-pasha-blue hover:text-pasha-purple text-xs" title="View Full Transcript"><i class="fas fa-external-link-alt"></i></button>
+                </div>
+                <div id="meetingCardTimer" class="text-pasha-blue text-3xl font-bold text-center my-3">00:00:00</div>
+                <div id="meetingCardTranscriptPreview" class="text-gray-300 text-xs h-24 overflow-y-auto border border-pasha-gray p-2 rounded" style="font-size: 6pt;">
+                    Live transcript will appear here...
+                </div>
             </div> -->
         </div>
 
@@ -354,6 +361,25 @@
     
     <div class="settings-footer p-6 border-t border-gray-200 dark:border-gray-700 text-right">
       <button id="saveSettingsBtn" class="btn-save-settings bg-pasha-blue hover:bg-pasha-purple text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+{/* Meeting Transcript Modal */}
+<div id="meetingTranscriptModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+  <div class="bg-white dark:bg-pasha-dark rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+      <h2 id="meetingModalTitle" class="text-2xl font-amaranth font-bold text-pasha-blue dark:text-pasha-purple">Live Meeting Transcript</h2>
+      <button id="closeMeetingTranscriptModalBtn" class="text-gray-400 hover:text-red-500 transition duration-150">
+        <i class="fas fa-times fa-2x"></i>
+      </button>
+    </div>
+    <div id="meetingModalTranscriptBody" class="p-6 overflow-y-auto text-sm text-gray-700 dark:text-gray-300" style="font-family: monospace;">
+      {/* Full transcript will be loaded here */}
+      <p>Transcript loading...</p>
+    </div>
+    <div class="p-6 border-t border-gray-200 dark:border-gray-700 text-right">
+      <button id="copyMeetingTranscriptBtn" class="bg-pasha-blue hover:bg-pasha-purple text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 text-sm">Copy Transcript</button>
     </div>
   </div>
 </div>
@@ -484,23 +510,29 @@
     <script src="https://www.gstatic.com/firebasejs/7.21.1/firebase-storage.js"></script>
 
     <script>
-        // Updated Firebase config to use environment variables or placeholders
-        const firebaseConfig = {
-          apiKey: "YOUR_API_KEY", // Replace with your actual Firebase API Key or use environment variables
-          authDomain: "YOUR_AUTH_DOMAIN", // Replace with your actual Firebase Auth Domain
-          databaseURL: "YOUR_DATABASE_URL", // Replace with your actual Firebase Database URL
-          projectId: "YOUR_PROJECT_ID", // Replace with your actual Firebase Project ID
-          storageBucket: "YOUR_STORAGE_BUCKET", // Replace with your actual Firebase Storage Bucket
-          messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Replace with your actual Firebase Messaging Sender ID
-          appId: "YOUR_APP_ID", // Replace with your actual Firebase App ID
-          measurementId: "YOUR_MEASUREMENT_ID" // Replace with your actual Firebase Measurement ID
-        };
-        // Initialize Firebase
-        if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
-            firebase.initializeApp(firebaseConfig);
-        } else {
-            console.error('Firebase SDK not loaded. Ensure firebase-app.js is included before this script.');
-        }
+        // Firebase will be initialized in bundle.js
+        // This ensures we don't have duplicate initialization
+        
+        // Auto-hide the microphone enable screen after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide the bot_load screen immediately
+            const botLoadScreen = document.querySelector('.bot_load');
+            if (botLoadScreen) {
+                botLoadScreen.style.display = 'none';
+                console.log('Bot load screen hidden');
+            }
+            
+            // Alternative: Hook up the Enable Microphone button if you want to keep it
+            const startButton = document.getElementById('startChatButton');
+            if (startButton) {
+                startButton.addEventListener('click', function() {
+                    const botLoadScreen = document.querySelector('.bot_load');
+                    if (botLoadScreen) {
+                        botLoadScreen.style.display = 'none';
+                    }
+                });
+            }
+        });
     </script>
 
     <script src="assets/js/bundle.js"></script>
@@ -513,185 +545,21 @@
     <script src="assets/js/schedulerController.js"></script>
     <script type="module" src="assets/js/settings_controller.js"></script>
     <script type="module" src="assets/js/elevenlabs_controller.js"></script>
-    <script type="module" src="assets/js/context_manager.js"></script>
-    <script type="module" src="assets/js/push_controller.js"></script> 
-
+    <script type="module" src="assets/js/meetingMode.js"></script> {/* Added new meeting mode script */}
     <script type="module">
+        // Initialize ElevenLabs Controller after DOM is loaded
         import { ElevenLabsController } from './assets/js/elevenlabs_controller.js';
-        import { MeetingController } from './assets/js/meetingController.js';
-        import { ContextManager } from './assets/js/context_manager.js';
-        import { SettingsController } from './assets/js/settings_controller.js';
-        import { PushController } from './assets/js/push_controller.js';
-        // Ensure schedulerController.js is loaded, it might not be a module
-        // If SchedulerController is a global, it will be available on window
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const botLoad = document.querySelector('.bot_load');
-            const startChatButton = document.getElementById('startChatButton');
-            const settingsModal = document.getElementById('settingsModal');
-            const openSettingsBtn = document.getElementById('settingsModeBtn'); // Assuming this is your settings button
-            const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-            const schedulerModal = document.getElementById('schedulerModal');
-            const openSchedulerBtn = document.getElementById('schedulerBtn'); // Assuming this is your scheduler button
-            const closeSchedulerBtn = document.getElementById('closeSchedulerBtn');
-            const calendarTab = document.getElementById('calendarTab');
-            const upcomingTab = document.getElementById('upcomingTab');
-            const calendarColumn = document.getElementById('calendarColumn');
-            const upcomingColumn = document.getElementById('upcomingColumn');
-
-
-            // Check if microphone was previously enabled
-            if (localStorage.getItem('microphoneEnabled') === 'true') {
-                if(botLoad) botLoad.style.display = 'none';
-                initializeControllers();
-            } else {
-                if (startChatButton && botLoad) {
-                    startChatButton.addEventListener('click', async () => {
-                        try {
-                            await navigator.mediaDevices.getUserMedia({ audio: true });
-                            localStorage.setItem('microphoneEnabled', 'true');
-                            botLoad.style.display = 'none';
-                            initializeControllers();
-                        } catch (error) {
-                            console.error('Error accessing microphone:', error);
-                            const voiceStatus = document.getElementById('voice-action');
-                            if(voiceStatus) voiceStatus.textContent = 'Microphone access denied. Please enable it in browser settings.';
-                            else alert('Microphone access is required for this application.'); // Fallback alert
-                        }
-                    });
-                } else {
-                    if(botLoad) botLoad.style.display = 'none'; // Hide loader if button not found but mic was enabled
-                    initializeControllers(); // Initialize if mic already enabled or no button
-                }
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Initializing ElevenLabs Controller...');
+            window.elevenLabsController = new ElevenLabsController();
+            
+            try {
+                await window.elevenLabsController.init();
+                console.log('ElevenLabs Controller initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize ElevenLabs Controller:', error);
             }
-
-            async function initializeControllers() {
-                try {
-                    // Ensure Firebase is initialized before accessing firestore
-                    if (!firebase.apps.length) {
-                        firebase.initializeApp(firebaseConfig); 
-                    }
-                    const db = firebase.firestore();
-
-                    console.log('🧠 Initializing Context Manager...');
-                    const contextManager = new ContextManager(db);
-                    window.contextManager = contextManager;
-
-                    console.log('⚙️ Initializing Settings Controller...');
-                    const settingsController = new SettingsController(contextManager);
-                    window.settingsController = settingsController;
-
-                    console.log('🔊 Initializing ElevenLabs Controller...');
-                    const elevenLabsController = new ElevenLabsController(contextManager);
-                    window.elevenLabsController = elevenLabsController;
-                    await elevenLabsController.init();
-
-                    console.log('📅 Initializing Meeting Controller...');
-                    const meetingController = new MeetingController(db);
-                    window.meetingController = meetingController;
-                    await meetingController.init();
-
-                    console.log('🔔 Initializing Push Controller...');
-                    const pushController = new PushController(); // Assuming no db needed for constructor
-                    window.pushController = pushController;
-                    // await pushController.init(); // If there's an init method
-
-                    // Initialize scheduler controller (assuming it's a global or correctly imported)
-                    if (typeof SchedulerController === 'function') {
-                        window.schedulerController = new SchedulerController();
-                        // window.schedulerController.init(); // If there's an init method
-                    } else {
-                        console.error('SchedulerController not defined or not a function.');
-                    }
-
-                    console.log("Pasha (Tailwind UI) Initialized with all controllers");
-                    initializeClearChat();
-                    initializeModals(); // Ensure this function is defined and handles Tailwind modals
-                    // Add any other initializations from index_previous.html's script block
-
-                } catch (error) {
-                    console.error("Error initializing controllers:", error);
-                }
-            }
-
-            function initializeClearChat() {
-                const clearChatBtn = document.getElementById('clear-chat-btn');
-                const chatMessagesContainer = document.getElementById('chat-messages'); // Ensure this is the correct ID
-
-                if (clearChatBtn && chatMessagesContainer) {
-                    clearChatBtn.addEventListener('click', function() {
-                        // Consider using a Tailwind modal for confirmation instead of window.confirm
-                        if (window.confirm('Are you sure you want to clear the chat?')) {
-                            chatMessagesContainer.innerHTML = ''; // Clear messages
-                            // Optionally, add back the initial Pasha welcome message or a placeholder
-                            // Example: addPashaMessage("Chat cleared. How can I help you now?");
-                            localStorage.removeItem('chatHistory'); // Clear chat history from local storage
-                            console.log('Chat cleared.');
-                        }
-                    });
-                } else {
-                    console.warn('Clear chat button or chat messages container not found.');
-                }
-            }
-
-            function initializeModals() {
-                // Settings Modal
-                const settingsModal = document.getElementById('settingsModal');
-                const openSettingsBtn = document.getElementById('settingsModeBtn');
-                const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-                const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-
-                if (openSettingsBtn && settingsModal && closeSettingsBtn) {
-                    openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
-                    closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
-                    // Add event listener for saveSettingsBtn if it exists and has functionality
-                    if (saveSettingsBtn) {
-                        saveSettingsBtn.addEventListener('click', () => {
-                            // Implement save settings logic here
-                            console.log('Settings saved (placeholder)');
-                            settingsModal.classList.add('hidden');
-                        });
-                    }
-                }
-
-                // Scheduler Modal
-                const schedulerModal = document.getElementById('schedulerModal');
-                const openSchedulerBtn = document.getElementById('schedulerBtn');
-                const closeSchedulerBtn = document.getElementById('closeSchedulerBtn');
-                const calendarTab = document.getElementById('calendarTab');
-                const upcomingTab = document.getElementById('upcomingTab');
-                const calendarColumn = document.getElementById('calendarColumn');
-                const upcomingColumn = document.getElementById('upcomingColumn');
-
-                if (openSchedulerBtn && schedulerModal && closeSchedulerBtn) {
-                    openSchedulerBtn.addEventListener('click', () => schedulerModal.classList.remove('hidden'));
-                    closeSchedulerBtn.addEventListener('click', () => schedulerModal.classList.add('hidden'));
-
-                    if (calendarTab && upcomingTab && calendarColumn && upcomingColumn) {
-                        calendarTab.addEventListener('click', () => {
-                            calendarColumn.classList.remove('hidden');
-                            upcomingColumn.classList.add('hidden');
-                            calendarTab.classList.add('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
-                            calendarTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                            upcomingTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                            upcomingTab.classList.remove('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
-                        });
-                        upcomingTab.addEventListener('click', () => {
-                            upcomingColumn.classList.remove('hidden');
-                            calendarColumn.classList.add('hidden');
-                            upcomingTab.classList.add('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
-                            upcomingTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                            calendarTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                            calendarTab.classList.remove('border-pasha-blue', 'text-pasha-blue', 'dark:border-pasha-purple', 'dark:text-pasha-purple');
-                        });
-                    }
-                }
-                // Add logic for other modals if any
-            }
-
-            // Add any other global event listeners or functions from index_previous.html that are needed
-            // For example, theme switching logic, etc.
-
         });
     </script>
 </body>

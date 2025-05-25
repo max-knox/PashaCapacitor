@@ -54,6 +54,7 @@ const { chatCompletionsGemini } = require('./agent_completions_gemini');
 const { chatCompletionsClaude } = require('./agent_completions_claude');
 const { remoteUpdates } = require('./remote_updates');
 const { elevenLabsSignedUrl, validateElevenLabsAgent } = require('./elevenlabs_signed_url');
+const { elevenLabsMeetingTool } = require('./elevenLabsMeetingTool');
 
 // Helper function to wrap each function with CORS
 const wrapWithCors = (fn) => functions.https.onRequest((req, res) => {
@@ -80,6 +81,7 @@ exports.chatCompletionsClaude = wrapWithCors(chatCompletionsClaude);
 exports.remoteUpdates = wrapWithCors(remoteUpdates);
 exports.elevenLabsSignedUrl = wrapWithCors(elevenLabsSignedUrl);
 exports.validateElevenLabsAgent = wrapWithCors(validateElevenLabsAgent);
+exports.elevenLabsMeetingTool = wrapWithCors(elevenLabsMeetingTool);
 
 // Export the transcribeAudio function directly as a callable function
 exports.transcribeAudio = transcribeAudio;
