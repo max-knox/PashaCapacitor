@@ -103,6 +103,24 @@ class MeetingModeController {
         if (!this.isMeetingActive) return;
 
         this.isMeetingActive = false;
+        
+        // Clear any pending silence timer
+        if (this.silenceTimer) {
+            clearTimeout(this.silenceTimer);
+            this.silenceTimer = null;
+        }
+        
+        // Save any remaining transcript
+        if (this.currentTranscript && this.currentTranscript.trim()) {
+            const chunk = {
+                timestamp: new Date(),
+                text: this.currentTranscript.trim()
+            };
+            this.transcriptChunks.push(chunk);
+            console.log('Saving final transcript chunk:', this.currentTranscript.trim());
+            this.currentTranscript = '';
+        }
+        
         if (this.recognition) {
             this.recognition.stop();
             this.recognition = null;
@@ -168,11 +186,23 @@ class MeetingModeController {
         this.recognition = new webkitSpeechRecognition();
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
-        this.recognition.lang = 'en-US'; // Or make this configurable
+        this.recognition.lang = 'en-US';
+        this.recognition.maxAlternatives = 1;
+        
+        // Keep track of accumulated transcript
+        this.currentTranscript = '';
+        this.silenceTimer = null;
+        this.lastResultTime = Date.now();
 
         this.recognition.onresult = (event) => {
             let interimTranscript = '';
             let finalTranscript = '';
+            
+            // Clear the silence timer when we get results
+            if (this.silenceTimer) {
+                clearTimeout(this.silenceTimer);
+            }
+            
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalTranscript += event.results[i][0].transcript;
@@ -182,25 +212,58 @@ class MeetingModeController {
             }
 
             if (finalTranscript.trim()) {
-                const chunk = {
-                    timestamp: new Date(),
-                    text: finalTranscript.trim()
-                };
-                this.transcriptChunks.push(chunk);
+                // Add to current transcript
+                this.currentTranscript += ' ' + finalTranscript.trim();
+                
+                // Update display with final text
                 this.updateTranscriptDisplay(finalTranscript.trim(), false);
+                
+                // Set a timer to save the accumulated transcript after silence
+                this.silenceTimer = setTimeout(() => {
+                    if (this.currentTranscript.trim()) {
+                        const chunk = {
+                            timestamp: new Date(),
+                            text: this.currentTranscript.trim()
+                        };
+                        this.transcriptChunks.push(chunk);
+                        console.log('Saving transcript chunk:', this.currentTranscript.trim());
+                        this.currentTranscript = ''; // Reset for next chunk
+                    }
+                }, 2000); // Save after 2 seconds of silence
             }
+            
             if (interimTranscript.trim()) {
                 this.updateTranscriptDisplay(interimTranscript.trim(), true);
             }
+            
+            this.lastResultTime = Date.now();
         };
 
         this.recognition.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
+            
+            // Save any pending transcript before handling error
+            if (this.currentTranscript.trim()) {
+                const chunk = {
+                    timestamp: new Date(),
+                    text: this.currentTranscript.trim()
+                };
+                this.transcriptChunks.push(chunk);
+                this.currentTranscript = '';
+            }
+            
             if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'network') {
-                // Potentially restart, or notify user
-                if (this.isMeetingActive) { // Only restart if meeting is supposed to be active
-                    this.recognition.stop(); // Stop current instance before restarting
-                    setTimeout(() => { if(this.isMeetingActive) this.recognition.start(); }, 1000); // Restart after a short delay
+                if (this.isMeetingActive) {
+                    // Restart recognition
+                    setTimeout(() => { 
+                        if(this.isMeetingActive) {
+                            try {
+                                this.recognition.start();
+                            } catch (e) {
+                                console.log('Recognition already started');
+                            }
+                        }
+                    }, 1000);
                 }
             } else if (event.error === 'not-allowed') {
                 alert("Microphone access was denied. Please enable microphone access to use meeting mode.");
@@ -209,11 +272,28 @@ class MeetingModeController {
         };
 
         this.recognition.onend = () => {
+            // Save any pending transcript
+            if (this.currentTranscript.trim()) {
+                const chunk = {
+                    timestamp: new Date(),
+                    text: this.currentTranscript.trim()
+                };
+                this.transcriptChunks.push(chunk);
+                this.currentTranscript = '';
+            }
+            
             if (this.isMeetingActive) {
-                console.log("Speech recognition ended, restarting if meeting active.");
-                // Check if it was an error or a natural end, and if meeting is still active
-                // Some browsers stop recognition after a period of silence.
-                setTimeout(() => { if(this.isMeetingActive && this.recognition) this.recognition.start(); }, 500);
+                console.log("Speech recognition ended, restarting...");
+                // Restart recognition immediately
+                setTimeout(() => { 
+                    if(this.isMeetingActive && this.recognition) {
+                        try {
+                            this.recognition.start();
+                        } catch (e) {
+                            console.log('Recognition already started');
+                        }
+                    }
+                }, 100);
             } else {
                 console.log("Speech recognition ended, meeting not active.");
             }
