@@ -6,6 +6,7 @@ class MeetingModeController {
         this.firestore = firestore;
         this.recognition = null;
         this.isMeetingActive = false;
+        this.isMeetingPaused = false;
         this.meetingId = null;
         this.meetingStartTime = null;
         this.transcriptChunks = [];
@@ -45,6 +46,48 @@ class MeetingModeController {
         }
         // Listen for ElevenLabs client tool calls
         window.addEventListener('elevenlabs-tool-call', (event) => this.handleElevenLabsToolCall(event));
+        
+        // Listen for ElevenLabs conversation events to auto-pause/resume
+        window.addEventListener('elevenlabs-conversation-started', () => this.pauseMeeting());
+        window.addEventListener('elevenlabs-conversation-ended', () => this.resumeMeeting());
+    }
+    
+    pauseMeeting() {
+        if (!this.isMeetingActive || this.isMeetingPaused) return;
+        
+        console.log('Pausing meeting for ElevenLabs conversation');
+        this.isMeetingPaused = true;
+        
+        // Stop recognition but keep meeting active
+        if (this.recognition) {
+            this.recognition.stop();
+        }
+        
+        // Update UI to show paused state
+        if (this.ui.voiceActionStatus) {
+            this.ui.voiceActionStatus.textContent = "Meeting Paused (In Conversation)";
+        }
+        if (this.ui.meetingCardTitle) {
+            this.ui.meetingCardTitle.textContent += " (PAUSED)";
+        }
+    }
+    
+    resumeMeeting() {
+        if (!this.isMeetingActive || !this.isMeetingPaused) return;
+        
+        console.log('Resuming meeting after ElevenLabs conversation');
+        this.isMeetingPaused = false;
+        
+        // Restart recognition
+        this.startSpeechRecognition();
+        
+        // Update UI to show active state
+        if (this.ui.voiceActionStatus) {
+            this.ui.voiceActionStatus.textContent = "Meeting in Progress...";
+        }
+        if (this.ui.meetingCardTitle) {
+            this.ui.meetingCardTitle.textContent = this.ui.meetingCardTitle.textContent.replace(" (PAUSED)", "");
+        }
     }
 
     toggleMeetingMode() {
@@ -81,6 +124,18 @@ class MeetingModeController {
             };
             await this.firestore.collection('meetingCapture').doc(this.meetingId).set(initialMeetingData);
             console.log("Meeting document created in Firestore with ID:", this.meetingId, initialMeetingData);
+
+            // Request microphone permission explicitly
+            try {
+                console.log('Requesting microphone permission for meeting mode...');
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log('Microphone permission granted for meeting mode');
+            } catch (micError) {
+                console.error('Microphone permission denied:', micError);
+                alert('Microphone access is required for Meeting Mode. Please allow microphone access and try again.');
+                this.stopMeeting();
+                return;
+            }
 
             this.createMeetingCard();
             this.startSpeechRecognition();
@@ -159,8 +214,11 @@ class MeetingModeController {
                     <button id="openMeetingModalBtn" class="text-pasha-blue hover:text-pasha-purple text-xs" title="View Full Transcript"><i class="fas fa-external-link-alt"></i></button>
                 </div>
                 <div id="meetingCardTimer" class="text-pasha-blue text-3xl font-bold text-center my-3">00:00:00</div>
+                <div id="micStatus" class="text-center text-sm mb-2">
+                    <span class="text-yellow-400"><i class="fas fa-microphone"></i> Initializing microphone...</span>
+                </div>
                 <div id="meetingCardTranscriptPreview" class="text-gray-300 text-xs h-24 overflow-y-auto border border-pasha-gray p-2 rounded" style="font-size: 6pt;">
-                    Initializing live transcript...
+                    Waiting for speech...
                 </div>
             </div>
         `;
@@ -171,6 +229,7 @@ class MeetingModeController {
         this.ui.meetingCardTimer = document.getElementById('meetingCardTimer');
         this.ui.meetingCardTranscriptPreview = document.getElementById('meetingCardTranscriptPreview');
         this.ui.openMeetingModalBtn = document.getElementById('openMeetingModalBtn');
+        this.ui.micStatus = document.getElementById('micStatus');
 
         if (this.ui.openMeetingModalBtn) {
             this.ui.openMeetingModalBtn.addEventListener('click', () => this.openTranscriptModal());
@@ -178,12 +237,14 @@ class MeetingModeController {
     }
 
     startSpeechRecognition() {
-        if (!('webkitSpeechRecognition' in window)) {
-            alert('Speech recognition not supported in this browser.');
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert('Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.');
             return;
         }
 
-        this.recognition = new webkitSpeechRecognition();
+        // Use the available speech recognition API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.recognition = new SpeechRecognition();
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
         this.recognition.lang = 'en-US';
@@ -193,6 +254,37 @@ class MeetingModeController {
         this.currentTranscript = '';
         this.silenceTimer = null;
         this.lastResultTime = Date.now();
+        
+        console.log('Speech recognition config:', {
+            continuous: this.recognition.continuous,
+            interimResults: this.recognition.interimResults,
+            lang: this.recognition.lang
+        });
+
+        this.recognition.onstart = () => {
+            console.log('Speech recognition started successfully');
+            if (this.ui.micStatus) {
+                this.ui.micStatus.innerHTML = '<span class="text-green-400"><i class="fas fa-microphone"></i> Listening...</span>';
+            }
+        };
+
+        this.recognition.onaudiostart = () => {
+            console.log('Audio capture started');
+        };
+
+        this.recognition.onsoundstart = () => {
+            console.log('Sound detected');
+            if (this.ui.micStatus) {
+                this.ui.micStatus.innerHTML = '<span class="text-green-400 animate-pulse"><i class="fas fa-microphone"></i> Detecting sound...</span>';
+            }
+        };
+
+        this.recognition.onspeechstart = () => {
+            console.log('Speech detected');
+            if (this.ui.micStatus) {
+                this.ui.micStatus.innerHTML = '<span class="text-green-400 animate-pulse"><i class="fas fa-microphone"></i> Recording speech...</span>';
+            }
+        };
 
         this.recognition.onresult = (event) => {
             let interimTranscript = '';
@@ -242,6 +334,11 @@ class MeetingModeController {
         this.recognition.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
             
+            // Update UI to show error
+            if (this.ui.micStatus) {
+                this.ui.micStatus.innerHTML = `<span class="text-red-400"><i class="fas fa-microphone-slash"></i> Error: ${event.error}</span>`;
+            }
+            
             // Save any pending transcript before handling error
             if (this.currentTranscript.trim()) {
                 const chunk = {
@@ -254,6 +351,10 @@ class MeetingModeController {
             
             if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'network') {
                 if (this.isMeetingActive) {
+                    // Update status to show we're retrying
+                    if (this.ui.micStatus) {
+                        this.ui.micStatus.innerHTML = '<span class="text-yellow-400"><i class="fas fa-microphone"></i> Restarting...</span>';
+                    }
                     // Restart recognition
                     setTimeout(() => { 
                         if(this.isMeetingActive) {
@@ -282,11 +383,11 @@ class MeetingModeController {
                 this.currentTranscript = '';
             }
             
-            if (this.isMeetingActive) {
+            if (this.isMeetingActive && !this.isMeetingPaused) {
                 console.log("Speech recognition ended, restarting...");
                 // Restart recognition immediately
                 setTimeout(() => { 
-                    if(this.isMeetingActive && this.recognition) {
+                    if(this.isMeetingActive && !this.isMeetingPaused && this.recognition) {
                         try {
                             this.recognition.start();
                         } catch (e) {
@@ -294,13 +395,31 @@ class MeetingModeController {
                         }
                     }
                 }, 100);
+            } else if (this.isMeetingPaused) {
+                console.log("Speech recognition ended, meeting paused.");
             } else {
                 console.log("Speech recognition ended, meeting not active.");
             }
         };
         
-        this.recognition.start();
-        console.log("Speech recognition started for meeting.");
+        try {
+            this.recognition.start();
+            console.log("Speech recognition start() called successfully");
+        } catch (error) {
+            console.error("Error starting speech recognition:", error);
+            if (error.message.includes('already started')) {
+                console.log('Recognition was already running, stopping and restarting...');
+                this.recognition.stop();
+                setTimeout(() => {
+                    try {
+                        this.recognition.start();
+                        console.log('Recognition restarted successfully');
+                    } catch (restartError) {
+                        console.error('Failed to restart recognition:', restartError);
+                    }
+                }, 100);
+            }
+        }
     }
 
     updateTranscriptDisplay(text, isInterim) {

@@ -349,6 +349,9 @@ export class ElevenLabsController {
         this.elements.talkButton.disabled = false;
         this.elements.talkButton.classList.add('end-button');
         this.appendMessage('bot', 'Connected! You can start speaking now.');
+        
+        // Dispatch event for other components
+        window.dispatchEvent(new Event('elevenlabs-conversation-started'));
     }
 
     handleDisconnection() {
@@ -360,6 +363,9 @@ export class ElevenLabsController {
         this.elements.talkButton.disabled = false;
         this.elements.talkButton.classList.remove('end-button');
         this.appendMessage('bot', 'Conversation ended.');
+        
+        // Dispatch event for other components
+        window.dispatchEvent(new Event('elevenlabs-conversation-ended'));
     }
 
     handleMessage(message) {
