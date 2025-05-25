@@ -90,6 +90,89 @@
             right: 1rem; /* 16px */
             z-index: 10; /* Ensure it's above chat messages */
         }
+
+        /* Chat Bubble Styles */
+        .msg {
+            display: flex;
+            align-items: flex-end; /* Align items to the bottom for better bubble appearance */
+            margin-bottom: 1rem; /* Space between messages */
+        }
+
+        .msg-img {
+            width: 40px; /* Avatar size */
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 0.75rem; /* Space between avatar and bubble */
+            margin-left: 0.75rem; /* Space for right-aligned messages */
+        }
+
+        .msg-bubble {
+            max-width: 70%; /* Max width of the bubble */
+            padding: 0.75rem 1rem; /* Padding inside the bubble */
+            border-radius: 1.25rem; /* Bubble border radius */
+            word-wrap: break-word; /* Break long words */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow */
+        }
+
+        .left-msg .msg-bubble {
+            background-color: #e5e7eb; /* Tailwind gray-200 for received messages */
+            color: #1f2937; /* Tailwind gray-800 */
+            border-bottom-left-radius: 0.25rem; /* Flat bottom-left for "tail" effect */
+        }
+        .left-msg .msg-img {
+            margin-right: 0.75rem;
+            margin-left: 0;
+        }
+
+
+        .right-msg {
+            flex-direction: row-reverse; /* Align user messages to the right */
+        }
+
+        .right-msg .msg-bubble {
+            background-color: #667eea; /* Pasha-blue for sent messages */
+            color: white;
+            border-bottom-right-radius: 0.25rem; /* Flat bottom-right for "tail" effect */
+        }
+        .right-msg .msg-img {
+            margin-left: 0.75rem;
+            margin-right: 0;
+        }
+
+
+        .msg-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.25rem; /* Space above timestamp/name */
+            font-size: 0.75rem; /* Smaller text for info */
+            color: #6b7280; /* Tailwind gray-500 */
+        }
+        .right-msg .msg-info {
+             justify-content: flex-end;
+        }
+        .left-msg .msg-info {
+            margin-left: calc(40px + 0.75rem); /* Align with bubble, considering avatar and margin */
+        }
+        .right-msg .msg-info {
+             margin-right: calc(40px + 0.75rem); /* Align with bubble, considering avatar and margin */
+        }
+
+        .msg-info-name {
+            font-weight: 600; /* Semi-bold name */
+            margin-right: 0.5rem;
+        }
+        .right-msg .msg-info-name {
+            margin-left: 0.5rem;
+            margin-right: 0;
+        }
+
+        .msg-info-time {
+            /* Timestamp styling */
+            font-size: 0.7rem; /* Slightly smaller than other info text */
+            color: #a0aec0; /* Tailwind gray-500, slightly lighter */
+        }
     </style>
     <script>
       tailwind.config = {
